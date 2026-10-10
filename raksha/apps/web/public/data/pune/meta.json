@@ -1,0 +1,52 @@
+{
+ "v": 1,
+ "city": "pune",
+ "name": "Pune",
+ "bbox": [
+  18.4,
+  73.74,
+  18.64,
+  74
+ ],
+ "res": 9,
+ "cellCount": 6721,
+ "generated_at": "2026-10-10T18:09:08+00:00",
+ "calibration": {
+  "day": {
+   "a": 107.98436386411248,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.694545
+  },
+  "evening": {
+   "a": 117.1893310832982,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.6399899999999998
+  },
+  "night": {
+   "a": 113.77340887887684,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.6592049999999999
+  }
+ },
+ "distributionPct": {
+  "day": {
+   "COMFORTABLE": 26.9,
+   "STAY_ALERT": 32.6,
+   "EXTRA_CARE": 40.5
+  },
+  "evening": {
+   "COMFORTABLE": 23.8,
+   "STAY_ALERT": 37.1,
+   "EXTRA_CARE": 39.1
+  },
+  "night": {
+   "COMFORTABLE": 26.6,
+   "STAY_ALERT": 42.1,
+   "EXTRA_CARE": 31.3
+  }
+ },
+ "attribution": "© OpenStreetMap contributors (ODbL). Scores are estimates from open map data; conditions can change."
+}

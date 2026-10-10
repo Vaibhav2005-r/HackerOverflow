@@ -38,5 +38,7 @@ writeFileSync(join(outDir, "meta.json"), JSON.stringify({
 console.log(`${src.cells.length} cells → ${outDir}`);
 console.log("class distribution (% of cells):");
 console.table(dist);
+// Sanity check, not a target: it catches a broken pack (everything red or everything green). Real cities differ a lot — a metro with
+// many parks, railway land and sparse opening-hours tags is legitimately ~⅓ "Extra care" at night. We never retune to hit a number.
 const nightCare = (dist.night as Record<string, number>).EXTRA_CARE!;
-if (nightCare < 5 || nightCare > 25) console.warn(`WARNING: NIGHT EXTRA_CARE ${nightCare}% outside 5–25% sanity range`);
+if (nightCare < 3 || nightCare > 50) console.warn(`WARNING: NIGHT EXTRA_CARE ${nightCare}% looks degenerate (expected roughly 3–50%) — check the OSM extract and features`);

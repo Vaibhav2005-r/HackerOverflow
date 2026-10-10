@@ -1,1 +1,1 @@
-{"v":1,"cities":[{"id":"mumbai_demo","name":"Mumbai \u2014 Kandivali to Goregaon","bbox":[19.15,72.82,19.23,72.895],"cells":643,"version":"2026-10-10T12:04:31+00:00"}]}
+{"v":1,"cities":[{"id":"mumbai","name":"Mumbai","bbox":[18.89,72.76,19.28,72.99],"cells":5271,"version":"2026-10-10T18:08:56+00:00"},{"id":"pune","name":"Pune","bbox":[18.4,73.74,18.64,74],"cells":6721,"version":"2026-10-10T18:09:08+00:00"}]}
