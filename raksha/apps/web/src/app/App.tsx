@@ -43,6 +43,7 @@ export default function App() {
   const phase = useJourney((s) => s.engine.phase);
   const resolvedOpen = useJourney((s) => s.resolvedOpen);
   const arrived = useJourney((s) => s.arrived);
+  const hasPlan = useJourney((s) => !!s.plan);
 
   useEffect(() => { document.documentElement.dataset.theme = band === "day" ? "day" : "night"; }, [band]);
   useEffect(() => { document.documentElement.dataset.reduceMotion = String(reduce); }, [reduce]);
@@ -57,6 +58,11 @@ export default function App() {
     if (!onboarded && path !== "/onboarding") navigate("/onboarding", true);
     else if (onboarded && path === "/onboarding") navigate("/", true);
   }, [path, onboarded]);
+  // Journey state lives in memory: after a reload, orphaned screens fall back to Home instead of rendering blank
+  useEffect(() => {
+    if (!onboarded || phase !== "IDLE") return;
+    if ((path === "/plan" && !hasPlan) || path === "/journey" || path === "/guard") navigate("/", true);
+  }, [path, onboarded, phase, hasPlan]);
 
   if (path === "/dev/components") return <LazyMotion features={loadMotion}><DevComponents /></LazyMotion>;
   if (!onboarded) return <LazyMotion features={loadMotion}><Onboarding /></LazyMotion>;

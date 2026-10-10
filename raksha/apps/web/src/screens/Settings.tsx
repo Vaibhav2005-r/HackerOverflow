@@ -56,7 +56,7 @@ export default function Settings() {
 
       <h2 className="mb-1 mt-8 text-sm font-semibold uppercase tracking-wide text-text-2">{t("set.demo")}</h2>
       <Row label={t("set.pretend")}><Seg value={s.demoBand} options={[["day", t("band.day")], ["evening", t("band.evening")], ["night", t("band.night")]]} onChange={(demoBand) => set({ demoBand })} testid="pretend" /></Row>
-      <Row label={t("set.speed")}><Seg value={s.simSpeed} options={[[1, "1×"], [5, "5×"], [15, "15×"]]} onChange={(simSpeed) => set({ simSpeed })} testid="speed" /></Row>
+      <Row label={t("set.speed")}><Seg value={s.simSpeed} options={[[1, "1×"], [5, "5×"], [15, "15×"], [40, "40×"]]} onChange={(simSpeed) => set({ simSpeed })} testid="speed" /></Row>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <button className="btn" data-testid="sim-shake" onClick={simulateShake}>{t("set.simShake")}</button>
         <button className="btn" data-testid="open-contact-view" onClick={() => void openContact()}>{t("set.openContact")}</button>

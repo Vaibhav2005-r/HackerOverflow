@@ -52,6 +52,14 @@ test("hold SOS 2 s → SOS screen; wrong PIN errors; right PIN resolves", async 
   await expect(page.getByTestId("resolved-title")).toContainText("SOS cancelled");
 });
 
+test("reloading on a journey screen falls back to Home instead of a blank page", async ({ page }) => {
+  for (const path of ["/plan", "/journey", "/guard"]) {
+    await page.goto(path);
+    await expect(page.getByTestId("home")).toBeVisible();
+    expect(new URL(page.url()).pathname).toBe("/");
+  }
+});
+
 test("a short hold does not trigger SOS", async ({ page }) => {
   await holdSos(page, 700);
   await expect(page.getByTestId("sos-screen")).toHaveCount(0);
@@ -116,12 +124,12 @@ test("a community report is stored locally and adjusts the hex score", async ({ 
 test.describe("journey", () => {
   test.setTimeout(240_000);
   test("simulated night walk: heads-up before the stretch, then Guard mode with the one-hand dock", async ({ page }) => {
-    await setSetting(page, { simSpeed: 15 });
+    await setSetting(page, { simSpeed: 40 });
     await openDemo(page, "night-walk");
     await page.getByTestId("simulate-walk").click();
     await expect(page.getByTestId("journey")).toBeVisible();
     await expect(page.getByTestId("instruction")).toBeVisible();
-    await expect(page.getByTestId("card-heads-up")).toBeVisible({ timeout: 170_000 });
+    await expect(page.getByTestId("card-heads-up")).toBeVisible({ timeout: 120_000 });
     await expect(page.getByTestId("sakhi-text").first()).not.toBeEmpty();
     await expect(page.getByTestId("guard")).toBeVisible({ timeout: 90_000 });
     await expect(page.getByTestId("guard-overline")).toContainText(/guard mode/i);

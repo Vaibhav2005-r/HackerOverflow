@@ -26,8 +26,8 @@ export function RouteCard({ a, label, tradeoff, selected, expanded, pick, muchLo
             {pick && <span className="rounded-full px-2.5 text-[11px] font-bold leading-[22px] text-brand-ink" style={{ background: "linear-gradient(90deg, var(--sakhi-a), var(--sakhi-b))" }}>{t("route.pick")}</span>}
           </div>
           <p className="mt-0.5 text-[13px] leading-[18px] text-text-2">{t(tradeoff.key, tradeoff.params)}</p>
-          <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold">
-            <span className="size-2 rounded-full" style={{ background: CLASS_COLOR[a.cls] }} />{t(`class.${a.cls}`)}
+          <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs font-semibold">
+            <span className="size-2 shrink-0 rounded-full" style={{ background: CLASS_COLOR[a.cls] }} /><span className="whitespace-nowrap">{t(`class.${a.cls}`)}</span>
             <span className="font-normal text-text-3">· {n === 0 ? t("route.noStretches") : t("route.watch", { n })}</span>
           </p>
           {muchLonger && <p className="mt-1 text-xs font-semibold" style={{ color: "var(--cls-stay-alert)" }}>{t("route.muchLonger")}</p>}

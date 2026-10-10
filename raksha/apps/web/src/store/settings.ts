@@ -15,7 +15,7 @@ export interface SettingsState {
   duress?: PinHash;
   shakeAlwaysArmed: boolean;
   demoBand: "auto" | Band;      // "Pretend it's" — judges evaluate in daylight, so default to night
-  simSpeed: 1 | 5 | 15;
+  simSpeed: 1 | 5 | 15 | 40;
   showHex: boolean;
   reduceMotion: boolean;
   shareWalk: boolean;

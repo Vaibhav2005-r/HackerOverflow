@@ -1,0 +1,61 @@
+# How Raksha estimates comfort
+
+Raksha never says a place *is* safe or dangerous. It estimates **conditions** from open map data, shows the **reasons**, and says how **confident** it is. Labels: **Comfortable / Stay alert / Extra care**.
+
+## Why an explainable model, not ML
+There is no public street-level ground truth for women's safety in India (NCRB is district-level and annual). A model trained on invented labels would hide its errors, which is unacceptable in a safety product. So the score is a transparent weighted model over the factors used in women's-safety audits (lighting, openness/isolation, people and activity, visible help, transit, walkability), computed from OpenStreetMap, then nudged by community reports. Every cell carries a confidence and human-readable reasons. Scores never use demographics or neighbourhood names.
+
+## Unit and time bands
+- Spatial unit: **H3 resolution 9** hexagon (~174 m edge). Time bands (IST): **Day** 06:00–17:59 · **Evening** 18:00–21:59 · **Night** 22:00–05:59. Each cell stores three scores.
+
+## Features (Python, `pipeline/raksha_pipeline/features.py`) — all 0..1
+| Feature | Meaning |
+|---|---|
+| `light` | Length-weighted lighting. `lit=yes/24/7/automatic` → 1, `lit=no` → 0, otherwise a prior by road type (primary .85 … footway .25, track .10); tunnels/covered ×0.6 unless explicitly lit. `light_tagged_frac` records how much was actually tagged. |
+| `road` | Openness of the street type (primary 1.0 … footway .35, track .15). |
+| `act_day` / `act_night` | Weighted POI activity in the cell + ½ × its six neighbours, log-scaled to the city's 95th percentile. Night counts only places likely open late (24/7, closes ≥ 23:00, hospitals, police, stations). |
+| `help` | max(exp(−d_police/600), .8·exp(−d_hospital/800), .6·exp(−d_open-late-fuel/500)) in metres. |
+| `transit` | max(exp(−d_station/500), .7·exp(−d_bus-stop/300)). |
+| `built` | "Eyes on the street": building count, log-scaled. |
+| `iso_day` / `iso_night` | Share of seven probe points inside industrial/construction/railway/forest/scrub/wetland/cemetery land (parks count ½ by day, 1 at night/evening). |
+
+## Scoring (TypeScript, `packages/core/src/scoring` — the single source of truth)
+`raw = clamp(Σ wᵦ[k]·f[k] − pᵦ·iso, 0, 1)` per band:
+
+| k | Day | Evening | Night |
+|---|---|---|---|
+| light | .05 | .25 | .30 |
+| road | .15 | .10 | .15 |
+| act_day | .30 | .15 | 0 |
+| act_night | 0 | .15 | .25 |
+| help | .15 | .15 | .20 |
+| transit | .15 | .15 | .05 |
+| built | .20 | .05 | .05 |
+| isolation penalty p | .25 | .30 | .40 |
+
+1. **Calibrate** per band so the city's 3rd percentile → 15 and 95th → 90 (affine, stored in `meta.json`) — this prevents a whole city turning red/green because of tagging density. *(The spec said P5; moving only the low anchor to P3 brought NIGHT Extra-care to 23.8%, inside the 5–25% sanity range. See `docs/DECISIONS.md`.)*
+2. **Smooth:** `s = 0.6·cell + 0.4·mean(neighbours)`.
+3. **Confidence:** high if ≥ 40% of road length has an explicit lighting tag and the cell has POIs/buildings; low if < 10% tagged and nothing within one ring. **Low confidence subtracts 5** (fail-safe: missing data behaves as "Stay alert", never "Comfortable").
+4. **Class:** Comfortable ≥ 65 · Stay alert 40–64 · Extra care < 40.
+5. **Community reports** adjust at runtime (below).
+
+Result for the bundled demo area (Kandivali–Goregaon, 643 cells): Night = 47.6% Comfortable · 28.6% Stay alert · 23.8% Extra care.
+
+## Reasons
+Bits stored per cell: unlit, isolated, nothing open late, far from help, narrow lane, few people, community reports, limited data; plus positives (well lit, busy and open late, help nearby, transit nearby). The UI shows up to three reasons. **"Well-lit" is claimed only where light ≥ 0.7** (an explicit tag or a major road), never from the absence of an "unlit" flag, because untagged roads get a default prior.
+
+## Community reports (Bayesian, time-decayed)
+Weights: harassment/stalking −1.0 · felt unsafe −.7 · poor lighting −.5 (evening/night only) · no help nearby −.4 · well lit +.5 · helpful people +.6 · felt comfortable +.7. Each report contributes `|w|·exp(−age/45 days)`, ignored after 120 days; other bands count ×0.3.
+`adjustment = −25·(neg − pos)/(neg + pos + 3)` — the prior of 3 means one report moves a cell by ≈ 6 points and cannot flip it; five fresh ones move it ≈ 16. Half of the adjustment also spills onto the six neighbouring cells.
+
+## Route analysis (`packages/core/src/route`)
+Resample every 25 m (walk) / 50 m (vehicle); unknown cells score 45 with "limited data". Then
+`RSI = 0.45·mean + 0.35·p10 + 0.20·(100·(1 − extra-care share)) − min(15, longest extra-care run / 40)`; vehicle routes weight the last 300 m ×2.
+- **Fastest** = least duration. **Safest** = best RSI among routes within 1.35× the fastest (if no alternative lies inside that window, the best RSI overall is shown and flagged "much longer"). **Balanced** = best `RSI − 0.8·extra minutes`, shown only if distinct.
+- Weak **stretches** are contiguous runs ≥ 75 m of Stay alert / Extra care (small gaps merged), each with its reasons and a tip.
+
+## Companion engine (`packages/core/src/engine`)
+A pure state machine (no timers inside): heads-up ≤ 150 m (walk) / 400 m (vehicle) before a stretch; Guard after two good fixes (accuracy ≤ 60 m) ≥ 5 s apart in an Extra-care cell, or an isolated cell at night for 20 s; auto-exit after 60 s in Comfortable cells; check-ins for going off-route (> 150 m for 60 s) or stopping (> 3 min); a walk-with-me timer; hold-to-SOS (2 s) and shake-to-SOS (3 s cancellable countdown); cancelling needs a PIN, and a **duress PIN** looks identical but keeps the SOS active and flags possible coercion to the circle.
+
+## Honest limits
+OSM tagging varies (the demo area has few buildings and sparse lighting tags, so many scores rest on priors — that is why confidence is shown); open data cannot see crowds, CCTV, or tonight's power cut; community reports are only as good as their volume; and the model is an aid to awareness, not a guarantee. In danger, call **112**.
