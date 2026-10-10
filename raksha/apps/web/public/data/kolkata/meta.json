@@ -1,0 +1,52 @@
+{
+ "v": 1,
+ "city": "kolkata",
+ "name": "Kolkata",
+ "bbox": [
+  22.44,
+  88.24,
+  22.68,
+  88.46
+ ],
+ "res": 9,
+ "cellCount": 4959,
+ "generated_at": "2026-10-10T18:15:18+00:00",
+ "calibration": {
+  "day": {
+   "a": 115.19325280864189,
+   "b": 9.414774502296032,
+   "p5": 0.0484857,
+   "p95": 0.6995655
+  },
+  "evening": {
+   "a": 128.79419100418946,
+   "b": 9.723546703521265,
+   "p5": 0.040968100000000014,
+   "p95": 0.6232924999999999
+  },
+  "night": {
+   "a": 122.3510987128665,
+   "b": 12.291269025595854,
+   "p5": 0.02213899999999995,
+   "p95": 0.6351289999999996
+  }
+ },
+ "distributionPct": {
+  "day": {
+   "COMFORTABLE": 25.5,
+   "STAY_ALERT": 36.3,
+   "EXTRA_CARE": 38.1
+  },
+  "evening": {
+   "COMFORTABLE": 24,
+   "STAY_ALERT": 42.5,
+   "EXTRA_CARE": 33.5
+  },
+  "night": {
+   "COMFORTABLE": 27.3,
+   "STAY_ALERT": 53.9,
+   "EXTRA_CARE": 18.8
+  }
+ },
+ "attribution": "© OpenStreetMap contributors (ODbL). Scores are estimates from open map data; conditions can change."
+}

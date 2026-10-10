@@ -1,0 +1,52 @@
+{
+ "v": 1,
+ "city": "delhi",
+ "name": "Delhi NCR (core)",
+ "bbox": [
+  28.44,
+  77.03,
+  28.74,
+  77.36
+ ],
+ "res": 9,
+ "cellCount": 8748,
+ "generated_at": "2026-10-10T18:13:53+00:00",
+ "calibration": {
+  "day": {
+   "a": 110.83050469256358,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.6767089999999999
+  },
+  "evening": {
+   "a": 119.56997852921752,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.62724775
+  },
+  "night": {
+   "a": 118.3387604803765,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.6337737499999999
+  }
+ },
+ "distributionPct": {
+  "day": {
+   "COMFORTABLE": 31.2,
+   "STAY_ALERT": 38,
+   "EXTRA_CARE": 30.8
+  },
+  "evening": {
+   "COMFORTABLE": 30.1,
+   "STAY_ALERT": 42.8,
+   "EXTRA_CARE": 27.1
+  },
+  "night": {
+   "COMFORTABLE": 33.6,
+   "STAY_ALERT": 42.7,
+   "EXTRA_CARE": 23.7
+  }
+ },
+ "attribution": "© OpenStreetMap contributors (ODbL). Scores are estimates from open map data; conditions can change."
+}

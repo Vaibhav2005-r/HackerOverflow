@@ -1,0 +1,52 @@
+{
+ "v": 1,
+ "city": "durgapur",
+ "name": "Durgapur",
+ "bbox": [
+  23.48,
+  87.24,
+  23.58,
+  87.36
+ ],
+ "res": 9,
+ "cellCount": 953,
+ "generated_at": "2026-10-10T18:15:22+00:00",
+ "calibration": {
+  "day": {
+   "a": 178.7224916298301,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.4196449999999997
+  },
+  "evening": {
+   "a": 188.89879558127936,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.397038
+  },
+  "night": {
+   "a": 160.68903458028024,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.46674
+  }
+ },
+ "distributionPct": {
+  "day": {
+   "COMFORTABLE": 15.1,
+   "STAY_ALERT": 32.9,
+   "EXTRA_CARE": 51.9
+  },
+  "evening": {
+   "COMFORTABLE": 21.3,
+   "STAY_ALERT": 53.2,
+   "EXTRA_CARE": 25.5
+  },
+  "night": {
+   "COMFORTABLE": 22.7,
+   "STAY_ALERT": 54.9,
+   "EXTRA_CARE": 22.5
+  }
+ },
+ "attribution": "© OpenStreetMap contributors (ODbL). Scores are estimates from open map data; conditions can change."
+}
