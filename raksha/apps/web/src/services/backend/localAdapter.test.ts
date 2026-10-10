@@ -1,10 +1,10 @@
 import "fake-indexeddb/auto";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { LocalBackend } from "./localAdapter";
 
 // Local mode must behave like the SQL RPCs (supabase/migrations/0003_rpc.sql): same token shape, same duress semantics.
 let b: LocalBackend;
-beforeEach(() => { b = new LocalBackend(); vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([{ h3: "89608b44003ffff", band: "night", category: "harassment", ageDays: 1 }])))); });
+beforeEach(() => { b = new LocalBackend(); });
 
 describe("LocalBackend", () => {
   it("issues 64-hex tokens and exposes only the view fields (never ids)", async () => {
@@ -51,11 +51,12 @@ describe("LocalBackend", () => {
     expect(await b.getCircle()).toHaveLength(4);
   });
 
-  it("aggregates seeded + local reports per cell and band", async () => {
+  it("aggregates only this device's reports, per cell and band (no seeded data)", async () => {
+    expect((await b.getAggregates(["89608b44003ffff"])).size).toBe(0);
     await b.submitReport({ h3: "89608b44003ffff", band: "night", category: "stalking" });
     const agg = await b.getAggregates(["89608b44003ffff", "89608b44007ffff"]);
-    expect(agg.get("89608b44003ffff")!.night.neg).toBeGreaterThan(1.5);   // seeded harassment + stalking
-    expect(agg.get("89608b44003ffff")!.day.neg).toBeGreaterThan(0);       // other bands count ×0.3
+    expect(agg.get("89608b44003ffff")!.night.neg).toBeCloseTo(1, 1);
+    expect(agg.get("89608b44003ffff")!.day.neg).toBeCloseTo(0.3, 1);     // other bands count ×0.3
     expect(agg.has("89608b44007ffff")).toBe(false);
   });
 

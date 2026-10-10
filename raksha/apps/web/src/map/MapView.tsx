@@ -9,7 +9,11 @@ import { CLASS_COLOR, SPOT_STROKE } from "./colors";
 import { fallbackStyle, loadBaseStyle, toNight } from "./style";
 import { configureMapWorker } from "./worker";
 
-const FALLBACK_CENTER: [number, number] = [72.857, 19.19];
+// before the first GPS fix: wherever she was last, otherwise an overview of India
+function startView(): { center: [number, number]; zoom: number } {
+  try { const p = JSON.parse(localStorage.getItem("raksha:lastPos") ?? "null") as [number, number] | null; if (p) return { center: p, zoom: 14 }; } catch { /* ignore */ }
+  return { center: [78.9, 22.5], zoom: 4.3 };
+}
 const EMPTY = { type: "FeatureCollection", features: [] } as const;
 
 let lastUser: { lat: number; lng: number } | null = null;
@@ -97,10 +101,9 @@ export default function MapView({ hidden }: { hidden: boolean }) {
   const mlRef = useRef<typeof import("maplibre-gl") | null>(null);
   const styleKey = useRef<string>("");
 
-  const demoBand = useSettings((s) => s.demoBand);
   const showHex = useSettings((s) => s.showHex);
   const reduce = useSettings((s) => s.reduceMotion);
-  const band: Band = useBand(demoBand);
+  const band: Band = useBand();
   const dark = band !== "day";
   const guard = useMapUi((s) => s.guard);
 
@@ -138,9 +141,8 @@ export default function MapView({ hidden }: { hidden: boolean }) {
       if (cancelled || !box.current) return;
       mlRef.current = ml;
       configureMapWorker(ml);
-      const meta = useCity.getState().meta;
-      const center: [number, number] = meta ? [(meta.bbox[1] + meta.bbox[3]) / 2, (meta.bbox[0] + meta.bbox[2]) / 2] : FALLBACK_CENTER;
-      const map = new ml.Map({ container: box.current, style: fallbackStyle(dark), center, zoom: 13.6, attributionControl: { compact: true }, maxPitch: 60 });
+      const v = startView();
+      const map = new ml.Map({ container: box.current, style: fallbackStyle(dark), center: v.center, zoom: v.zoom, attributionControl: { compact: true }, maxPitch: 60 });
       mapRef.current = map;
       userMarker.current = new ml.Marker({ element: userEl(), pitchAlignment: "map", rotationAlignment: "map" });
       destMarker.current = new ml.Marker({ element: destEl() });
@@ -161,10 +163,10 @@ export default function MapView({ hidden }: { hidden: boolean }) {
 
   useEffect(applyStyle, [dark]);
 
-  const cellsStatus = useCity((s) => s.status);
+  const cellsVersion = useCity((s) => s.version);
   const adj = useCity((s) => s.adj);
   const routes = useMapUi((s) => s.routes);
-  useEffect(push, [band, showHex, cellsStatus, adj, routes, guard]);
+  useEffect(push, [band, showHex, cellsVersion, adj, routes, guard]);
 
   // Extra-care hexes: 6 s opacity shimmer between 1 and .45 (off with reduced motion)
   useEffect(() => {

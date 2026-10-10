@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { onboard } from "./helpers";
+import { onboard, planRoute } from "./helpers";
 
-// Runs against the production build (service worker + strict CSP) on :4173.
-test.use({ baseURL: "http://127.0.0.1:4173" });
+// Runs against the production build (service worker + strict CSP) on :4174.
+test.use({ baseURL: "http://127.0.0.1:4174" });
 
 test("installable PWA: manifest with PNG + maskable icons, service worker registers", async ({ page, request }) => {
   await onboard(page);
@@ -18,9 +18,7 @@ test("no CSP violations and no console errors on the production build", async ({
   page.on("console", (m) => { if (m.type() === "error" && !/openfreemap|tiles|Failed to load resource/.test(m.text())) problems.push(m.text()); });
   page.on("pageerror", (e) => problems.push(e.message));
   await onboard(page);
-  await page.getByTestId("search").click();
-  await page.getByTestId("demo-night-walk").click();
-  await expect(page.getByTestId("route-card-safest")).toBeVisible({ timeout: 20_000 });
+  await planRoute(page);
   expect(problems).toEqual([]);
   expect(await page.evaluate(() => document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute("content"))).toContain("default-src 'self'");
 });

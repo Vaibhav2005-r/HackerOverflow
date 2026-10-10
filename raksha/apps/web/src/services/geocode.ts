@@ -10,10 +10,10 @@ const photon = z.object({
 });
 
 /** Photon autocomplete biased to the city centre; Nominatim as a polite fallback. */
-export async function searchPlaces(q: string, near: { lat: number; lng: number }, signal?: AbortSignal): Promise<Place[]> {
+export async function searchPlaces(q: string, near: { lat: number; lng: number } | null, signal?: AbortSignal): Promise<Place[]> {
   if (q.trim().length < 2) return [];
   try {
-    const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lat=${near.lat}&lon=${near.lng}&limit=6`, { signal });
+    const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}${near ? `&lat=${near.lat}&lon=${near.lng}` : ""}&limit=6&lang=en`, { signal });
     if (!r.ok) throw new Error(String(r.status));
     return photon.parse(await r.json()).features.filter((f) => f.properties.name).map((f) => ({
       name: f.properties.name!, detail: [f.properties.street, f.properties.district ?? f.properties.city].filter(Boolean).join(", ") || undefined,
@@ -21,7 +21,7 @@ export async function searchPlaces(q: string, near: { lat: number; lng: number }
     }));
   } catch (e) {
     if ((e as Error).name === "AbortError") throw e;
-    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=jsonv2&limit=6&viewbox=${near.lng - 0.2},${near.lat + 0.2},${near.lng + 0.2},${near.lat - 0.2}`, { signal });
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=jsonv2&limit=6&countrycodes=in${near ? `&viewbox=${near.lng - 0.3},${near.lat + 0.3},${near.lng + 0.3},${near.lat - 0.3}` : ""}`, { signal });
     const j = (await r.json()) as { display_name: string; lat: string; lon: string }[];
     return j.map((x) => ({ name: x.display_name.split(",")[0]!, detail: x.display_name.split(",").slice(1, 3).join(","), lat: +x.lat, lng: +x.lon }));
   }

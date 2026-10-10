@@ -1,0 +1,24 @@
+# Security + caching headers (Cloudflare Pages / Netlify format). The CSP here mirrors the one injected into index.html at build time.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  X-Frame-Options: DENY
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Permissions-Policy: geolocation=(self), microphone=(self), camera=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+
+# hashed build output never changes
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# the service worker and manifest must always revalidate, or updates never arrive
+/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+
+# city packs are regenerated periodically; the app also revalidates them in the background
+/data/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400

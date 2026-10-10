@@ -1,6 +1,6 @@
 import { del, entries, get, set } from "idb-keyval";
 import { aggregate, type Aggregate, type Band, type Report, type SosMode, type SosTrigger } from "@raksha/core";
-import type { Backend, LivePoint, ShareStart, ShareView, SosStart, TrustedContact } from "./types";
+import type { AccountInfo, Backend, LivePoint, ShareStart, ShareView, SosStart, TrustedContact } from "./types";
 
 const CIRCLE_KEY = "raksha:circle";
 const REPORTS_KEY = "raksha:reports";
@@ -83,20 +83,11 @@ export class LocalBackend implements Backend {
     const list = (await get<Report[]>(REPORTS_KEY)) ?? [];
     await set(REPORTS_KEY, [...list, { ...r, createdAt: Date.now() }]);
   }
-  /** Seeded demo reports (the local twin of supabase/seed.sql) plus anything she filed on this device. */
-  private async seed(): Promise<Report[]> {
-    if (this.seeded) return this.seeded;
-    try {
-      const rows = (await (await fetch("/data/mumbai_demo/seed_reports.json")).json()) as { h3: string; band: Band; category: Report["category"]; ageDays: number }[];
-      this.seeded = rows.map((r) => ({ h3: r.h3, band: r.band, category: r.category, createdAt: Date.now() - r.ageDays * 86_400_000 }));
-    } catch { this.seeded = []; }
-    return this.seeded;
-  }
-  private seeded: Report[] | null = null;
+  /** Local mode: only reports filed on this device. Shared reports need the Supabase backend. */
   async getAggregates(cells: string[]): Promise<Map<string, Record<Band, Aggregate>>> {
     const want = new Set(cells);
-    const all = [...(await this.seed()), ...((await get<Report[]>(REPORTS_KEY)) ?? [])].filter((r) => want.has(r.h3));
-    return aggregate(all, Date.now());
+    const mine = ((await get<Report[]>(REPORTS_KEY)) ?? []).filter((r) => want.has(r.h3));
+    return aggregate(mine, Date.now());
   }
   async uploadEvidence() { /* local mode keeps clips on the device (IndexedDB) */ }
 
@@ -111,6 +102,13 @@ export class LocalBackend implements Backend {
     const poll = setInterval(cb, 3000); // BroadcastChannel can be missed on background tabs
     return () => { ch?.close(); clearInterval(poll); };
   }
+
+  async accountInfo(): Promise<AccountInfo> { return { supported: false, anonymous: true }; }
+  async linkEmail() { throw new Error("Accounts need the online backend"); }
+  async confirmEmail() { throw new Error("Accounts need the online backend"); }
+  async signInWithEmail() { throw new Error("Accounts need the online backend"); }
+  async confirmSignIn() { throw new Error("Accounts need the online backend"); }
+  async signOut() { /* nothing to sign out of in local mode */ }
 
   async deleteMyData() {
     for (const [k] of await entries()) if (String(k).startsWith("raksha:")) await del(k);

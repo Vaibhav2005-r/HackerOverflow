@@ -20,7 +20,7 @@ LANDUSE = "industrial|construction|brownfield|greenfield|quarry|railway|cemetery
 
 def queries(bbox: list[float]) -> dict[str, str]:
     bb = ",".join(str(x) for x in bbox)
-    head = "[out:json][timeout:180];"
+    head = "[out:json][timeout:120];"
     return {
         "roads": f"{head}way[highway]({bb});out geom;",
         "pois": f"""{head}(
@@ -39,7 +39,7 @@ def queries(bbox: list[float]) -> dict[str, str]:
     }
 
 
-def _run(query: str, attempts: int = 12) -> list[dict]:
+def _run(query: str, attempts: int = 8) -> list[dict]:
     for i in range(attempts):
         url = MIRRORS[i % len(MIRRORS)]
         try:
@@ -51,24 +51,72 @@ def _run(query: str, attempts: int = 12) -> list[dict]:
             print(f"  overpass {url} -> {r.status_code}, retrying", file=sys.stderr)
         except (requests.RequestException, ValueError) as e:
             print(f"  overpass {url} failed: {e}", file=sys.stderr)
-        time.sleep(min(60, 8 * (i + 1)))
+        time.sleep(min(30, 5 * (i + 1)))
     raise RuntimeError("Overpass unavailable after retries")
 
 
-def fetch(city: dict, refresh: bool = False) -> dict:
-    cache = RAW_DIR / f"osm_{city['id']}.json"
-    if cache.exists() and not refresh:
-        return json.loads(cache.read_text())
-    out = {}
-    for name, q in queries(city["bbox"]).items():
-        print(f"fetching {name} ...", file=sys.stderr)
-        out[name] = _run(q)
-        print(f"  {name}: {len(out[name])} elements", file=sys.stderr)
-    RAW_DIR.mkdir(parents=True, exist_ok=True)
-    cache.write_text(json.dumps(out))
+TILE_DEG = 0.1
+
+
+def tiles(bbox: list[float]) -> list[list[float]]:
+    """Split a bbox into ≤ TILE_DEG tiles (row-major)."""
+    s, w, n, e = bbox
+    out, lat = [], s
+    while lat < n - 1e-9:
+        lat2, lng = min(lat + TILE_DEG, n), w
+        while lng < e - 1e-9:
+            lng2 = min(lng + TILE_DEG, e)
+            out.append([round(lat, 5), round(lng, 5), round(lat2, 5), round(lng2, 5)])
+            lng = lng2
+        lat = lat2
     return out
+
+
+def tiles_n(bbox: list[float], n: int) -> list[list[float]]:
+    s, w, nn, e = bbox
+    dlat, dlng = (nn - s) / n, (e - w) / n
+    return [[round(s + a * dlat, 5), round(w + b * dlng, 5), round(s + (a + 1) * dlat, 5), round(w + (b + 1) * dlng, 5)] for a in range(n) for b in range(n)]
+
+
+def _merge(parts: list[dict]) -> dict:
+    """Union of tile results, de-duplicated by (type, id) — ways that cross a tile edge appear in both tiles."""
+    out: dict[str, dict] = {}
+    for key in ("roads", "pois", "buildings", "areas"):
+        seen: dict[tuple, dict] = {}
+        for p in parts:
+            for el in p.get(key, []):
+                seen[(el["type"], el["id"])] = el
+        out[key] = list(seen.values())
+    return out
+
+
+def fetch(city: dict, refresh: bool = False) -> dict:
+    """Tiled, resumable fetch. Each tile is cached in data/raw/<city>/tile_<i>.json so a flaky run can simply be re-run."""
+    cache_dir = RAW_DIR / city["id"]
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    parts = []
+    tl = tiles(city["bbox"])
+    for i, tb in enumerate(tl):
+        f = cache_dir / f"tile_{i:03d}.json"
+        if f.exists() and not refresh:
+            parts.append(json.loads(f.read_text())); continue
+        got = {}
+        for name, q in queries(tb).items():
+            if name == "buildings":
+                continue
+            print(f"[{city['id']}] tile {i + 1}/{len(tl)} {name} ...", file=sys.stderr, flush=True)
+            got[name] = _run(q)
+            time.sleep(1.0)  # be polite to the public instances
+        got["buildings"] = []
+        for q4 in tiles_n(tb, 2):  # dense metros: 4 quadrants keep each query small
+            print(f"[{city['id']}] tile {i + 1}/{len(tl)} buildings {q4[:2]} ...", file=sys.stderr, flush=True)
+            got["buildings"] += _run(queries(q4)["buildings"])
+            time.sleep(1.0)
+        f.write_text(json.dumps(got))
+        parts.append(got)
+    return _merge(parts)
 
 
 if __name__ == "__main__":
     from .io import load_city
-    fetch(load_city(sys.argv[1] if len(sys.argv) > 1 else "mumbai_demo"))
+    fetch(load_city(sys.argv[1] if len(sys.argv) > 1 else "mumbai"))

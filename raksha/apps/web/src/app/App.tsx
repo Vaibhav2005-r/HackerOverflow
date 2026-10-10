@@ -17,11 +17,12 @@ import Sos from "../screens/Sos";
 import FakeCall from "../screens/FakeCall";
 import Circle from "../screens/Circle";
 import Settings from "../screens/Settings";
+import Legal from "../screens/Legal";
 import DevComponents from "../screens/DevComponents";
 import { useSettings } from "../store/settings";
 import { useSession } from "../store/session";
-import { useCity, DEFAULT_CITY } from "../store/city";
-import { initRuntime, manualGuard, startLocation, useJourney } from "../store/journey";
+import { useCity } from "../store/city";
+import { initRuntime, manualGuard, setSakhiLanguage, startLocation, useJourney } from "../store/journey";
 import { navigate, usePath } from "../lib/router";
 import { useMapUi } from "../store/mapUi";
 import { useBand } from "../lib/useBand";
@@ -30,15 +31,14 @@ import { useBand } from "../lib/useBand";
 if (import.meta.env.DEV) Object.assign(window, { __raksha: { mapUi: useMapUi, city: useCity, journey: useJourney, settings: useSettings } });
 
 const MAP_SCREENS = ["/", "/plan", "/journey", "/guard", "/search"];
-const OVERLAYS = ["/plan", "/journey", "/guard", "/sos", "/fake-call", "/circle", "/settings", "/search"];
+const OVERLAYS = ["/plan", "/journey", "/guard", "/sos", "/fake-call", "/circle", "/settings", "/search", "/privacy", "/terms"];
 
 const loadMotion = () => import("./motionFeatures").then((m) => m.default);
 
 export default function App() {
   const path = usePath();
   const onboarded = useSettings((s) => s.onboarded);
-  const demoBand = useSettings((s) => s.demoBand);
-  const band = useBand(demoBand);
+  const band = useBand();
   const reduce = useSettings((s) => s.reduceMotion);
   const phase = useJourney((s) => s.engine.phase);
   const resolvedOpen = useJourney((s) => s.resolvedOpen);
@@ -46,15 +46,17 @@ export default function App() {
   const hasPlan = useJourney((s) => !!s.plan);
 
   useEffect(() => { document.documentElement.dataset.theme = band === "day" ? "day" : "night"; }, [band]);
+  const lang = useSettings((s) => s.lang);
   useEffect(() => { document.documentElement.dataset.reduceMotion = String(reduce); }, [reduce]);
-  useEffect(() => { void useSession.getState().init(); void useCity.getState().load(DEFAULT_CITY); initRuntime(); }, []);
+  useEffect(() => { document.documentElement.lang = lang; setSakhiLanguage(lang); }, [lang]);
+  useEffect(() => { void useSession.getState().init(); void useCity.getState().init(); initRuntime(); }, []);
   useEffect(() => {
     if (!onboarded) return;
     startLocation();
     if (new URLSearchParams(location.search).get("guard") === "1") { history.replaceState(null, "", "/"); manualGuard(true); } // PWA shortcut "Guard me now"
   }, [onboarded]);
   useEffect(() => {
-    if (path === "/dev/components") return;
+    if (path === "/dev/components" || path === "/privacy" || path === "/terms") return;   // readable before onboarding too
     if (!onboarded && path !== "/onboarding") navigate("/onboarding", true);
     else if (onboarded && path === "/onboarding") navigate("/", true);
   }, [path, onboarded]);
@@ -65,6 +67,7 @@ export default function App() {
   }, [path, onboarded, phase, hasPlan]);
 
   if (path === "/dev/components") return <LazyMotion features={loadMotion}><DevComponents /></LazyMotion>;
+  if (!onboarded && (path === "/privacy" || path === "/terms")) return <Legal kind={path === "/privacy" ? "privacy" : "terms"} />;
   if (!onboarded) return <LazyMotion features={loadMotion}><Onboarding /></LazyMotion>;
 
   return (
@@ -80,6 +83,8 @@ export default function App() {
       {path === "/fake-call" && <FakeCall />}
       {path === "/circle" && <Circle />}
       {path === "/settings" && <Settings />}
+      {path === "/privacy" && <Legal kind="privacy" />}
+      {path === "/terms" && <Legal kind="terms" />}
       <CardHost />
       {phase === "SOS_COUNTDOWN" && <Countdown />}
       {resolvedOpen && <Resolved />}

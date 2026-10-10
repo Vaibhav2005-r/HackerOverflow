@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version="0.6" generator="raksha-test">
+  <node id="1" version="1" lat="19.2000" lon="72.8500"/>
+  <node id="2" version="1" lat="19.2000" lon="72.8510"/>
+  <node id="3" version="1" lat="19.2000" lon="72.8520"/>
+  <node id="4" version="1" lat="19.2005" lon="72.8505"><tag k="amenity" v="police"/><tag k="name" v="Test PS"/></node>
+  <node id="5" version="1" lat="19.2010" lon="72.8500"/>
+  <node id="6" version="1" lat="19.2010" lon="72.8503"/>
+  <node id="7" version="1" lat="19.2013" lon="72.8503"/>
+  <node id="8" version="1" lat="19.2013" lon="72.8500"/>
+  <node id="9" version="1" lat="19.2100" lon="72.8600"/>
+  <node id="10" version="1" lat="19.2100" lon="72.8700"/>
+  <node id="11" version="1" lat="19.2200" lon="72.8700"/>
+  <node id="12" version="1" lat="19.2200" lon="72.8600"/>
+  <node id="13" version="1" lat="19.9" lon="73.5"/>
+  <way id="100" version="1"><nd ref="1"/><nd ref="2"/><nd ref="3"/><tag k="highway" v="primary"/><tag k="lit" v="yes"/></way>
+  <way id="101" version="1"><nd ref="5"/><nd ref="6"/><nd ref="7"/><nd ref="8"/><nd ref="5"/><tag k="building" v="yes"/></way>
+  <way id="102" version="1"><nd ref="9"/><nd ref="10"/><nd ref="11"/><nd ref="12"/><nd ref="9"/><tag k="landuse" v="industrial"/></way>
+  <way id="103" version="1"><nd ref="12"/><nd ref="13"/><tag k="highway" v="track"/></way>
+</osm>

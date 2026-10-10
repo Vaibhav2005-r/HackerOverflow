@@ -1,0 +1,52 @@
+name: CI
+on:
+  push: { branches: [main] }
+  pull_request:
+defaults: { run: { working-directory: raksha } }
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4          # version comes from "packageManager" in raksha/package.json
+        with: { package_json_file: raksha/package.json }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm, cache-dependency-path: raksha/pnpm-lock.yaml }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check                       # typecheck + lint + unit tests (core, web)
+      - run: pnpm build
+      - run: pnpm audit --audit-level high
+  e2e:
+    runs-on: ubuntu-latest
+    needs: checks
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4          # version comes from "packageManager" in raksha/package.json
+        with: { package_json_file: raksha/package.json }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm, cache-dependency-path: raksha/pnpm-lock.yaml }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web exec playwright install --with-deps chromium
+      - run: pnpm --filter web exec playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: playwright-traces, path: raksha/apps/web/test-results }
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r pipeline/requirements.txt
+      - run: pytest
+        working-directory: raksha/pipeline
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: latest }
+      - run: supabase start
+        working-directory: raksha
+      - run: supabase test db
+        working-directory: raksha

@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { onboard } from "./helpers";
+import { onboard, planRoute } from "./helpers";
 
 const scan = async (page: Page, label: string) => {
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).exclude(".maplibregl-map").exclude("[data-testid=map]").analyze();
@@ -37,10 +37,12 @@ test("axe: SOS (silent) and the PIN screen", async ({ page }) => {
 
 test("axe: Search and Plan", async ({ page }) => {
   await page.getByTestId("search").click();
+  await page.getByTestId("search-input").fill("Kandivali");
+  await expect(page.getByTestId("result-0")).toBeVisible();
   await page.waitForTimeout(800);
   await scan(page, "search");
-  await page.getByTestId("demo-tcet-kandivali").click();
-  await expect(page.getByTestId("route-card-safest")).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId("search-back").click();
+  await planRoute(page);
   await page.waitForTimeout(800);
   await scan(page, "plan");
 });

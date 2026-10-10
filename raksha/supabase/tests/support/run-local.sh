@@ -29,6 +29,4 @@ for t in tests/database/*.test.sql; do
   echo "$out" | grep -E "ERROR|FATAL|Looks like" || true
   if [ "$bad" -ne 0 ] || echo "$out" | grep -qE "ERROR|Looks like you planned"; then fail=1; fi
 done
-# seed must load cleanly too
-psql -v ON_ERROR_STOP=1 -q -d raksha -f seed.sql && echo "== seed.sql OK ($(psql -t -A -d raksha -c 'select count(*) from public.reports') reports)"
 exit $fail

@@ -1,0 +1,2 @@
+# single-page app: every path (e.g. /plan, /s/<token>) serves the app shell
+/*  /index.html  200

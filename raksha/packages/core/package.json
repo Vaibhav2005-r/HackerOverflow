@@ -9,8 +9,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "build-cells": "tsx src/scoring/build-cells.ts",
-    "test:cov": "vitest run --coverage",
-    "seed:make": "tsx scripts/make-seed.mts"
+    "test:cov": "vitest run --coverage"
   },
   "dependencies": {
     "h3-js": "^4.5.0"

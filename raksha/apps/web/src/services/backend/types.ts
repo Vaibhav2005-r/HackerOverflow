@@ -18,6 +18,8 @@ export interface ShareView {
   trail: LivePoint[];
 }
 
+export interface AccountInfo { supported: boolean; anonymous: boolean; email?: string }
+
 export interface Backend {
   readonly kind: "local" | "supabase";
   signIn(): Promise<{ userId: string }>;
@@ -38,4 +40,13 @@ export interface Backend {
   /** Live updates for the contact view; returns unsubscribe. */
   subscribeShare(token: string, cb: () => void): () => void;
   deleteMyData(): Promise<void>;
+  /** Accounts: anonymous by default, upgradable with an email so her circle and history survive a new phone / cleared browser. */
+  accountInfo(): Promise<AccountInfo>;
+  /** Anonymous → email account. Sends a 6-digit code; `confirmEmail` finishes it (her data stays attached). */
+  linkEmail(email: string): Promise<void>;
+  confirmEmail(email: string, code: string): Promise<void>;
+  /** Existing account on a new device: code by email, then her data is loaded. */
+  signInWithEmail(email: string): Promise<void>;
+  confirmSignIn(email: string, code: string): Promise<void>;
+  signOut(): Promise<void>;
 }

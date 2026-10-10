@@ -4,7 +4,7 @@ dist
 __pycache__
 .env
 .env.local
-data/raw/*.json
+data/raw/
 *.log
 .DS_Store
 .scratch
@@ -18,3 +18,4 @@ supabase/.env.local
 *.pyc
 coverage
 .vite
+dist-test

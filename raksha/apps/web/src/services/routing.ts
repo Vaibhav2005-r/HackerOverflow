@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { LngLat, Mode, RouteInput } from "@raksha/core";
-import { fixtureFor, type RouteWithSteps, type Step } from "./fixtures";
+import type { RouteWithSteps, Step } from "./routeTypes";
 
 const OSRM = { walk: "https://routing.openstreetmap.de/routed-foot", vehicle: "https://routing.openstreetmap.de/routed-car" } as const;
 const ORS_PROFILE = { walk: "foot-walking", vehicle: "driving-car" } as const;
@@ -40,19 +40,17 @@ async function viaOrs(from: LngLat, to: LngLat, mode: Mode, key: string, signal?
   return j.features.map((f, i) => ({ id: `r${i}`, coords: f.geometry.coordinates.map((c) => [c[0], c[1]] as LngLat), durationS: f.properties.summary.duration, distanceM: f.properties.summary.distance }));
 }
 
-/** 2–3 route alternatives. Cached 10 min; falls back to ORS (if keyed) and then to bundled demo fixtures. */
+/** 2–3 route alternatives (FOSSGIS OSRM, free). Cached 10 min; falls back to OpenRouteService when a key is configured. */
 export async function fetchRoutes(from: LngLat, to: LngLat, mode: Mode, signal?: AbortSignal): Promise<RouteWithSteps[]> {
   const key = `${from.map((x) => x.toFixed(3)).join(",")}|${to.map((x) => x.toFixed(4)).join(",")}|${mode}`;
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < TTL_MS) return hit.routes;
-  const fx = fixtureFor(from, to, mode);
   let routes: RouteWithSteps[] | null = null;
   try { routes = await viaOsrm(from, to, mode, signal); } catch (e) {
     if ((e as Error).name === "AbortError") throw e;
     const orsKey = import.meta.env.VITE_ORS_KEY as string | undefined;
     if (orsKey) { try { routes = await viaOrs(from, to, mode, orsKey, signal); } catch { /* fall through */ } }
   }
-  if (!routes?.length && fx) routes = fx;
   if (!routes) throw new Error("routing unavailable");
   cache.set(key, { at: Date.now(), routes });
   return routes;

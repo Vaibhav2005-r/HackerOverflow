@@ -14,8 +14,7 @@ shadow_port = 54320
 major_version = 17
 
 [db.seed]
-enabled = true
-sql_paths = ["./seed.sql"]
+enabled = false   # no demo data: reports start empty and fill with real ones
 
 [storage]
 enabled = true

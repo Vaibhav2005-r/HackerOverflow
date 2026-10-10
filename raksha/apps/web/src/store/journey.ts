@@ -5,7 +5,8 @@ import {
   type MessageRef, type PinResult, type RouteAssessment, type RouteChoice, type SosMode,
 } from "@raksha/core";
 import { getBackend } from "../services/backend";
-import { getFixtures, type RouteWithSteps, type Step } from "../services/fixtures";
+import { forgetSession, queueResolve, sendPoint, startOutbox } from "../services/outbox";
+import type { RouteWithSteps, Step } from "../services/routeTypes";
 import { useCity } from "./city";
 import { useSettings } from "./settings";
 import { useSession } from "./session";
@@ -45,6 +46,9 @@ interface JourneyStore {
   sos: SosInfo | null;
   simulating: boolean;
   simStopped: boolean;
+  start: { lng: number; lat: number; name: string } | null;   // null = start from GPS
+  searchFor: "dest" | "start";
+  pendingDest: PlaceLite | null;
   resolvedOpen: boolean;
   arrived: ArrivedInfo | null;
   siren: boolean;
@@ -56,21 +60,22 @@ interface JourneyStore {
 
 export const useJourney = create<JourneyStore>((set) => ({
   engine: initialState("night", Date.now()),
-  plan: null, sakhi: { text: "", n: 0 }, card: null, user: null, share: null, sos: null, simulating: false, simStopped: false,
+  plan: null, sakhi: { text: "", n: 0 }, card: null, user: null, share: null, sos: null, simulating: false, simStopped: false, start: null, searchFor: "dest", pendingDest: null,
   resolvedOpen: false, arrived: null, siren: false, sosShared: false, shakeArmed: false, recorder: { status: "idle", startedAt: 0 },
   set: (p) => set(p),
 }));
 const J = () => useJourney.getState();
 
 const messenger = new Messenger("en");
+export const setSakhiLanguage = (l: "en" | "hi") => { messenger.lang = l; };
 let rawRoutes: RouteWithSteps[] = [];
 let tipMap = new Map<string, MessageRef | null>();
 let sim: SimHandle | null = null;
 let planAbort: AbortController | null = null;
 
 export function effectiveBand(): Band {
-  const s = useSettings.getState().demoBand;
-  return s === "auto" ? bandForDate(new Date()) : s;
+  const { testMode, demoBand } = useSettings.getState();
+  return testMode && demoBand !== "auto" ? demoBand : bandForDate(new Date());
 }
 
 function ctx(): EngineContext {
@@ -154,17 +159,22 @@ async function beginSos(trigger: string, mode: SosMode) {
   useJourney.setState({ sos: { trigger, mode, duress: false, starting: true }, sosShared: false, resolvedOpen: false });
   navigate("/sos");
   if (mode === "loud") { startSiren(); useJourney.setState({ siren: true }); }
-  let sosId = "local";
-  try {
-    const r = await getBackend().startSos(trigger as never, mode, useSettings.getState().name || "Someone");
-    sosId = r.sosId;
-    useJourney.setState((s) => ({ sos: { ...(s.sos ?? { trigger, mode, duress: false }), starting: false, ...r, url: shareUrl(location.origin, r.token) } }));
-    pushNow(r.sessionId);
-  } catch {
-    // offline: the SOS screen falls back to call 112 / SMS deep links
-    useJourney.setState((s) => ({ sos: { ...(s.sos ?? { trigger, mode, duress: false }), starting: false, failed: true } }));
+  let sosId: string | undefined;
+  // The SOS screen is usable straight away (112 / SMS links work offline); creating the live session retries until it succeeds.
+  for (let attempt = 0; ; attempt++) {
+    if (!J().sos) return;                                   // cancelled meanwhile
+    try {
+      const r = await getBackend().startSos(trigger as never, mode, useSettings.getState().name || "Someone");
+      sosId = r.sosId;
+      useJourney.setState((s) => ({ sos: { ...(s.sos ?? { trigger, mode, duress: false }), starting: false, failed: false, ...r, url: shareUrl(location.origin, r.token) } }));
+      pushNow(r.sessionId);
+      break;
+    } catch {
+      useJourney.setState((s) => ({ sos: { ...(s.sos ?? { trigger, mode, duress: false }), starting: false, failed: true } }));
+      await new Promise((res) => setTimeout(res, Math.min(15_000, 2_000 * (attempt + 1))));
+    }
   }
-  void startRecording(sosId);
+  void startRecording(sosId ?? "local");
 }
 
 export function setSosMode(mode: SosMode) {
@@ -182,7 +192,8 @@ async function endSos(duress: boolean) {
   const sos = J().sos;
   stopSiren(); stopRecording();
   useJourney.setState({ siren: false, resolvedOpen: true });
-  if (sos?.sosId) { try { await getBackend().resolveSos(sos.sosId, duress); } catch { /* retried by host in Supabase mode */ } }
+  if (sos?.sessionId && !duress) forgetSession(sos.sessionId);
+  if (sos?.sosId) await queueResolve({ sosId: sos.sosId, duress });   // persisted + retried: a duress flag or an "ended" must never get lost
   // duress: the session stays alive in the background; the UI is identical to a real cancel
   useJourney.setState(duress ? { sos: sos ? { ...sos, duress: true } : null } : { sos: null, share: null });
   navigate("/");
@@ -198,7 +209,16 @@ export async function submitPin(pin: string): Promise<PinResult> {
 
 // ---------- location pipeline ----------
 let lastPush = 0;
+let lastCoverageCheck = 0;
 export function onFix(f: { lat: number; lng: number; accuracy: number; speed?: number | null; heading?: number | null; t?: number }) {
+  const first = J().user === null;
+  if (first || Date.now() - lastCoverageCheck > 30_000) {
+    // load the city pack for wherever she actually is (and remember it for next launch)
+    lastCoverageCheck = Date.now();
+    void useCity.getState().ensureFor([{ lat: f.lat, lng: f.lng }]);
+    try { localStorage.setItem("raksha:lastPos", JSON.stringify([f.lng, f.lat])); } catch { /* private mode */ }
+  }
+  if (first && !J().simulating) useMapUi.getState().set({ flyTo: { lng: f.lng, lat: f.lat, zoom: 15, nonce: nextNonce() } });
   useJourney.setState({ user: { lat: f.lat, lng: f.lng, accuracy: f.accuracy, heading: f.heading } });
   const t = clock.now();
   dispatch({ type: "POSITION", t, fix: { lat: f.lat, lng: f.lng, accuracy: f.accuracy, speed: f.speed, heading: f.heading, t } });
@@ -217,7 +237,7 @@ function pushNow(sessionId: string) {
 async function pushPoint(sessionId: string, f: { lat: number; lng: number; accuracy: number }) {
   let battery: number | undefined;
   try { battery = (await (navigator as Navigator & { getBattery?: () => Promise<{ level: number }> }).getBattery?.())?.level; } catch { /* unsupported */ }
-  await getBackend().pushPoint(sessionId, { lat: f.lat, lng: f.lng, accuracy: f.accuracy, battery, t: Date.now() }).catch(() => {});
+  sendPoint(sessionId, { lat: f.lat, lng: f.lng, accuracy: f.accuracy, battery, t: Date.now() }); // queued + retried until the backend accepts it
 }
 
 let stopGps: (() => void) | null = null;
@@ -261,8 +281,8 @@ export async function planRoute(from: LngLat, fromName: string, to: LngLat, toNa
   dispatch({ type: "PLAN_STARTED", t: clock.now() });
   navigate("/plan");
   try {
-    // Sakhi "thinks" for at least 1.5 s so the skeleton → routes transition reads as deliberate
-    const [routes] = await Promise.all([import("../services/routing").then((r) => r.fetchRoutes(from, to, mode, planAbort!.signal)), sleep(1500)]);
+    // a short minimum so the skeleton → routes transition does not flicker
+    const [routes] = await Promise.all([import("../services/routing").then((r) => r.fetchRoutes(from, to, mode, planAbort!.signal)), sleep(500)]);
     rawRoutes = routes;
     if (!rawRoutes.length) { useJourney.setState((s) => ({ plan: s.plan && { ...s.plan, status: "empty" } })); return; }
     const assessments = assessAll(mode);
@@ -281,12 +301,6 @@ export async function planRoute(from: LngLat, fromName: string, to: LngLat, toNa
 function announcePick(a: RouteAssessment, choice: RouteChoice) {
   const extra = Math.max(0, Math.round((a.durationS - choice.fastest.durationS) / 60));
   sayKey("route_ready", { minutes: extra, litPct: Math.round(a.litFrac * 100) });
-}
-
-export function planPreset(id: string) {
-  const p = getFixtures().find((x) => x.id === id);
-  if (!p) return;
-  void planRoute([p.from.lng, p.from.lat], p.from.name, [p.to.lng, p.to.lat], p.to.name, "walk");
 }
 
 export function selectRoute(id: string) {
@@ -383,6 +397,7 @@ let started = false;
 export function initRuntime() {
   if (started) return;
   started = true;
+  startOutbox();
   setInterval(() => { if (TICKING.has(J().engine.phase)) dispatch({ type: "TICK", t: clock.now() }); }, 1000);
   // follow the demo "pretend it's" setting
   let lastBand = effectiveBand();
@@ -408,16 +423,25 @@ export function initRuntime() {
 export const t = tNow;
 export { toast };
 
-// ---------- destination picking ----------
-export const DEMO_ORIGIN: LngLat = [72.8746, 19.206]; // TCET, inside the demo area
+// ---------- destination / start picking ----------
 export interface PlaceLite { name: string; detail?: string; lng: number; lat: number }
 
-/** Plan from her location when it is inside the covered area, otherwise from the demo start. */
-export function planTo(p: PlaceLite) {
-  const { user } = J();
-  const meta = useCity.getState().meta;
-  const inside = !!(user && meta && user.lat >= meta.bbox[0] && user.lat <= meta.bbox[2] && user.lng >= meta.bbox[1] && user.lng <= meta.bbox[3]);
+/** Plan from her real location (or a start point she searched for) to `p`. */
+export async function planTo(p: PlaceLite) {
+  const { user, start } = J();
+  const from: LngLat | null = start ? [start.lng, start.lat] : user ? [user.lng, user.lat] : null;
   const set = useSettings.getState();
   set.set({ recents: [{ name: p.name, detail: p.detail, lng: p.lng, lat: p.lat }, ...set.recents.filter((r) => r.name !== p.name)].slice(0, 5) });
-  void planRoute(inside && user ? [user.lng, user.lat] : DEMO_ORIGIN, inside ? "My location" : "Demo start (TCET)", [p.lng, p.lat], p.name, "walk");
+  if (!from) { toast(tNow("plan.needStart")); useJourney.setState({ searchFor: "start", pendingDest: p }); return; }
+  await useCity.getState().ensureFor([{ lat: from[1], lng: from[0] }, { lat: p.lat, lng: p.lng }]);
+  void planRoute(from, start?.name ?? tNow("plan.myLocation"), [p.lng, p.lat], p.name, "walk");
 }
+
+/** She picked a start point (instead of using GPS). If a destination is waiting, plan right away. */
+export function pickStart(p: PlaceLite) {
+  const { plan, pendingDest } = J();
+  useJourney.setState({ start: { lng: p.lng, lat: p.lat, name: p.name }, searchFor: "dest", pendingDest: null });
+  const dest = plan ? { name: plan.toName, lng: plan.to[0], lat: plan.to[1] } : pendingDest;
+  if (dest) void planTo(dest); else navigate("/", true);
+}
+export const useMyLocationAsStart = () => useJourney.setState({ start: null });

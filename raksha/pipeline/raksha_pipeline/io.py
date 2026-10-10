@@ -16,6 +16,10 @@ def load_city(city: str) -> dict:
     return {"id": city, **cities[city]}
 
 
+def load_all() -> list[str]:
+    return list(yaml.safe_load(CONFIG.read_text()))
+
+
 def write_json(path: Path, obj) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(obj, separators=(",", ":")))

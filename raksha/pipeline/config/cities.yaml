@@ -1,8 +1,43 @@
-mumbai_demo:
-  name: "Mumbai — Kandivali to Goregaon"
-  bbox: [19.150, 72.820, 19.230, 72.895]   # S, W, N, E
+# bbox = [south, west, north, east]. `pbf` = the Geofabrik zone extract in data/raw/pbf/ (preferred source). Without it the pipeline
+# falls back to public Overpass in ≤0.1° tiles cached in data/raw/<city>/ (slow and throttled — fine for a small area).
+# Order = priority. Add a city here, run `pnpm pipeline:run -- --city <id>`, and it appears in public/data/index.json.
+mumbai:
+  pbf: western-zone
+  name: "Mumbai"
+  bbox: [18.89, 72.76, 19.28, 72.99]
+  h3_res: 9
+delhi:
+  pbf: northern-zone
+  name: "Delhi NCR (core)"
+  bbox: [28.44, 77.03, 28.74, 77.36]
+  h3_res: 9
+bengaluru:
+  pbf: southern-zone
+  name: "Bengaluru"
+  bbox: [12.84, 77.46, 13.12, 77.76]
+  h3_res: 9
+pune:
+  pbf: western-zone
+  name: "Pune"
+  bbox: [18.40, 73.74, 18.64, 74.00]
+  h3_res: 9
+kolkata:
+  pbf: eastern-zone
+  name: "Kolkata"
+  bbox: [22.44, 88.24, 22.68, 88.46]
+  h3_res: 9
+hyderabad:
+  pbf: southern-zone
+  name: "Hyderabad"
+  bbox: [17.28, 78.32, 17.54, 78.60]
+  h3_res: 9
+chennai:
+  pbf: southern-zone
+  name: "Chennai"
+  bbox: [12.88, 80.12, 13.18, 80.34]
   h3_res: 9
 durgapur:
+  pbf: eastern-zone
   name: "Durgapur"
-  bbox: [23.480, 87.240, 23.580, 87.360]
+  bbox: [23.48, 87.24, 23.58, 87.36]
   h3_res: 9

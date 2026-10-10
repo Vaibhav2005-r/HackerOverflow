@@ -4,6 +4,10 @@ import "@fontsource/plus-jakarta-sans/latin-400.css";
 import "@fontsource/plus-jakarta-sans/latin-500.css";
 import "@fontsource/plus-jakarta-sans/latin-600.css";
 import "@fontsource/plus-jakarta-sans/latin-700.css";
+import "@fontsource/mukta/devanagari-400.css";
+import "@fontsource/mukta/devanagari-500.css";
+import "@fontsource/mukta/devanagari-600.css";
+import "@fontsource/mukta/devanagari-700.css";
 import "./styles/tokens.css";
 
 // The contact view is a separate, lightweight chunk: no app shell, stores or onboarding.

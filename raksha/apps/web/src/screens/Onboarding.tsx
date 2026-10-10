@@ -60,7 +60,7 @@ export default function Onboarding() {
               <div className="mb-8 flex justify-center"><CompanionOrb size={step === "s1" ? 120 : 96} state={step === "s1" ? "idle" : step === "s2" ? "headsUp" : "guard"} /></div>
               <h1 className="text-3xl font-extrabold">{t(story[step][0])}</h1>
               <p className="mx-auto mt-3 max-w-xs text-lg text-text-2">{t(story[step][1])}</p>
-              {step === "s1" && <p className="mx-auto mt-6 max-w-xs text-xs text-text-2">{t("disclaimer")}</p>}
+              {step === "s1" && <p className="mx-auto mt-6 max-w-xs text-xs text-text-2">{t("disclaimer")} <button className="underline" onClick={() => navigate("/privacy")}>{t("legal.privacy")}</button></p>}
             </div>
           )}
           {step === "name" && (

@@ -18,10 +18,10 @@ export default function Plan() {
   const plan = useJourney((s) => s.plan);
   const spots = useCity((s) => s.spots);
   const contact = useSession((s) => s.circle[0]?.name);
-  const { shareWalk, checkLate, set } = useSettings();
+  const { shareWalk, checkLate, testMode, set } = useSettings();
   const [expanded, setExpanded] = useState<string | null>(null);
   if (!plan) return null;
-  const { choice, selectedId } = plan;
+  const { choice, selectedId, assessments } = plan;
   const cards: { label: "safest" | "balanced" | "fastest"; a: RouteAssessment }[] = [];
   if (choice) {
     cards.push({ label: "safest", a: choice.safest });
@@ -38,7 +38,7 @@ export default function Plan() {
         initial={{ y: "100%" }} animate={{ y: 0 }} transition={{ type: "spring", stiffness: 260, damping: 32 }}>
         <div className="flex items-center gap-2">
           <IconButton label={t("common.back")} testid="plan-back" onClick={back}><ArrowLeft size={20} strokeWidth={1.75} /></IconButton>
-          <div className="min-w-0 flex-1"><p className="truncate text-lg font-semibold leading-6">{t("plan.toDest", { dest: plan.toName })}</p><p className="truncate text-xs text-text-3">{t("plan.from")} {plan.fromName}</p></div>
+          <div className="min-w-0 flex-1"><p className="truncate text-lg font-semibold leading-6">{t("plan.toDest", { dest: plan.toName })}</p><button className="block max-w-full truncate text-left text-xs text-text-2 underline decoration-dotted underline-offset-2" data-testid="change-start" onClick={() => { useJourney.setState({ searchFor: "start" }); navigate("/search"); }}>{t("plan.from")} {plan.fromName} ▾</button></div>
           <Segmented value={plan.mode} onChange={(m) => m !== plan.mode && void planRoute(plan.from, plan.fromName, plan.to, plan.toName, m)} testid="mode"
             options={[["walk", t("plan.walk")], ["vehicle", t("plan.autoCab")]]} label={t("plan.title")} />
         </div>
@@ -55,8 +55,9 @@ export default function Plan() {
                 explanations={explainStretches(a, spots)} onSelect={() => { if (sel) setExpanded(expanded === a.id ? null : a.id); else { selectRoute(a.id); setExpanded(null); } }} />
             );
           })}
+          {plan.status === "ready" && (assessments.find((a) => a.id === selectedId)?.lowDataFrac ?? 0) > 0.5 && <p className="px-1 text-center text-xs" style={{ color: "var(--cls-stay-alert)" }} data-testid="limited-data">{t("plan.limitedData")}</p>}
           {plan.status === "ready" && <p className="px-1 text-center text-xs text-text-3">{t("basedOn")}</p>}
-          {plan.status === "ready" && <button className="btn btn-ghost h-11 w-full text-sm text-text-2" data-testid="simulate-walk" onClick={() => startJourney(true)}>{t("plan.simulate")}</button>}
+          {plan.status === "ready" && testMode && <button className="btn btn-ghost h-11 w-full text-sm text-text-2" data-testid="simulate-walk" onClick={() => startJourney(true)}>{t("plan.simulate")}</button>}
         </div>
 
         <div className="border-t border-line py-1">

@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { en } from "./en";
+import { hi } from "./hi";
 
 const walk = (dir: string): string[] =>
   readdirSync(dir).flatMap((f) => { const p = join(dir, f); return statSync(p).isDirectory() ? walk(p) : /\.(ts|tsx)$/.test(f) && !/\.test\./.test(f) ? [p] : []; });
@@ -33,6 +34,13 @@ describe("i18n completeness (shipped language: en)", () => {
     };
     const missing = Object.entries(families).flatMap(([p, ks]) => ks.map((k) => `${p}.${k}`)).filter((k) => !(k in dict));
     expect(missing).toEqual([]);
+  });
+
+  it("Hindi has exactly the English keys, and every placeholder survives translation", () => {
+    expect(Object.keys(hi).sort()).toEqual(Object.keys(en).sort());
+    const ph = (v: string) => (v.match(/\{\w+\}/g) ?? []).sort().join(",");
+    const bad = Object.keys(en).filter((k) => ph((en as Record<string, string>)[k]!) !== ph((hi as Record<string, string>)[k]!));
+    expect(bad).toEqual([]);
   });
 
   it("every placeholder in a string is a simple {word}", () => {

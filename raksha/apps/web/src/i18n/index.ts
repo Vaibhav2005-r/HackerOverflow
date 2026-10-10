@@ -1,7 +1,8 @@
 import { en, type StringKey } from "./en";
+import { hi } from "./hi";
 import { useSettings } from "../store/settings";
 
-const dict: Record<string, Record<string, string>> = { en };
+const dict: Record<string, Record<string, string>> = { en, hi };
 
 export function translate(lang: string, key: string, params: Record<string, string | number> = {}): string {
   const raw = dict[lang]?.[key] ?? en[key as StringKey] ?? key;

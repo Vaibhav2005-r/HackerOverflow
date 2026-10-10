@@ -38,7 +38,8 @@ export default defineConfig(({ mode }) => ({
         ],
         shortcuts: [{ name: "Guard me now", url: "/?guard=1", description: "Open Raksha with Guard mode on" }],
       },
-      workbox: { globPatterns: ["**/*.{js,css,html,svg,png,json,woff2}"], navigateFallback: "/index.html", maximumFileSizeToCacheInBytes: 6_000_000 },
+      workbox: { globPatterns: ["**/*.{js,css,html,svg,png,woff2}"], globIgnores: ["data/**"],
+        runtimeCaching: [{ urlPattern: ({ url }) => url.pathname.startsWith("/data/"), handler: "StaleWhileRevalidate", options: { cacheName: "raksha-city-packs", expiration: { maxEntries: 60 } } }], navigateFallback: "/index.html", maximumFileSizeToCacheInBytes: 6_000_000 },
     }),
   ],
   optimizeDeps: { exclude: ["maplibre-gl"] }, // keeps its module worker resolvable in dev

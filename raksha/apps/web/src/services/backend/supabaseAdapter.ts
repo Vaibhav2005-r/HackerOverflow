@@ -2,7 +2,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getH3, initH3, type Aggregate, type Band, type Report, type SosMode, type SosTrigger } from "@raksha/core";
 import { useSettings } from "../../store/settings";
 import { edgeShareView } from "../shareClient";
-import type { Backend, LivePoint, ShareStart, ShareView, SosStart, TrustedContact } from "./types";
+import type { AccountInfo, Backend, LivePoint, ShareStart, ShareView, SosStart, TrustedContact } from "./types";
 
 const URL = import.meta.env.VITE_SUPABASE_URL as string;
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -34,7 +34,9 @@ export class SupabaseBackend implements Backend {
       session = r.data.session;
     }
     this.uid = session!.user.id;
-    await this.sb.from("profiles").upsert({ id: this.uid, display_name: (useSettings.getState().name || "friend").slice(0, 40) });
+    // doubles as a schema check: if the migrations haven't been applied this fails and the app falls back to local mode
+    const p = await this.sb.from("profiles").upsert({ id: this.uid, display_name: (useSettings.getState().name || "friend").slice(0, 40) });
+    if (p.error) throw new Error(`Supabase schema not ready (${p.error.message})`);
     return { userId: this.uid };
   }
 
@@ -95,6 +97,29 @@ export class SupabaseBackend implements Backend {
 
   getShareView(token: string): Promise<ShareView | null> { return edgeShareView(token); }
   subscribeShare(token: string, cb: () => void) { const i = setInterval(cb, 3000); void token; return () => clearInterval(i); }
+
+  async accountInfo(): Promise<AccountInfo> {
+    const { data } = await this.sb.auth.getUser();
+    const u = data.user;
+    return { supported: true, anonymous: !u?.email, email: u?.email ?? undefined };
+  }
+  async linkEmail(email: string) {
+    const r = await this.sb.auth.updateUser({ email });            // keeps the same user id (and every row), sends a confirmation code
+    if (r.error) throw friendly(r.error);
+  }
+  async confirmEmail(email: string, code: string) {
+    const r = await this.sb.auth.verifyOtp({ email, token: code, type: "email_change" });
+    if (r.error) throw friendly(r.error);
+  }
+  async signInWithEmail(email: string) {
+    const r = await this.sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+    if (r.error) throw friendly(r.error);
+  }
+  async confirmSignIn(email: string, code: string) {
+    const r = await this.sb.auth.verifyOtp({ email, token: code, type: "email" });
+    if (r.error) throw friendly(r.error);
+  }
+  async signOut() { await this.sb.auth.signOut(); }
 
   async deleteMyData() {
     const { data: { session } } = await this.sb.auth.getSession();

@@ -42,7 +42,7 @@ export function SearchPill({ label, onClick }: { label: string; onClick: () => v
 
 export function TimeBandChip({ label, onClick }: { label: string; onClick?: () => void }) {
   return (
-    <button type="button" onClick={onClick} data-testid="time-band" className="glass flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold">
+    <button type="button" onClick={onClick} disabled={!onClick} data-testid="time-band" className="glass flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold disabled:opacity-100">
       <Moon size={14} strokeWidth={1.75} style={{ color: "var(--brand-soft)" }} />{label}
     </button>
   );

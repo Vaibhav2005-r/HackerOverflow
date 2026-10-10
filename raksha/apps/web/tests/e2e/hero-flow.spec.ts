@@ -1,21 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
-import { onboard, pin } from "./helpers";
+import { onboard, pin, planRoute } from "./helpers";
 
 const holdSos = async (page: Page, ms = 2300) => {
   const b = await page.getByTestId("hold-sos").first().boundingBox();
   await page.mouse.move(b!.x + b!.width / 2, b!.y + b!.height / 2);
   await page.mouse.down(); await page.waitForTimeout(ms); await page.mouse.up();
 };
-const setSetting = async (page: Page, patch: Record<string, unknown>) => {
-  await page.evaluate((p) => { const k = "raksha:settings"; const j = JSON.parse(localStorage.getItem(k)!); Object.assign(j.state, p); localStorage.setItem(k, JSON.stringify(j)); }, patch);
-  await page.reload(); await page.getByTestId("home").waitFor();
-};
-const openDemo = async (page: Page, id: "tcet-kandivali" | "night-walk") => {
-  await page.getByTestId("search").click();
-  await page.getByTestId(`demo-${id}`).click();
-  await expect(page.getByTestId("route-card-safest")).toBeVisible({ timeout: 20_000 });
-};
-
 test.beforeEach(async ({ page }) => { await onboard(page); });
 
 test("home renders the map with the safety hex layer and band chip", async ({ page }) => {
@@ -26,7 +16,7 @@ test("home renders the map with the safety hex layer and band chip", async ({ pa
 });
 
 test("search → plan shows Sakhi's pick, trade-off text and explained weak stretches", async ({ page }) => {
-  await openDemo(page, "night-walk");
+  await planRoute(page);
   await expect(page.getByTestId("route-skeleton")).toHaveCount(0);
   const safest = page.getByTestId("route-card-safest");
   await expect(safest).toContainText("Sakhi's pick");
@@ -85,8 +75,8 @@ test("duress PIN shows the same resolved UI while the contact view stays ACTIVE 
 });
 
 test("shake → 3 s countdown (cancellable) → SOS", async ({ page }) => {
-  await setSetting(page, { shakeAlwaysArmed: true });
   await page.goto("/settings");
+  await page.getByRole("switch", { name: "Shake to SOS always armed" }).click();
   await page.getByTestId("sim-shake").click();
   await expect(page.getByTestId("countdown")).toBeVisible();
   await page.getByTestId("countdown-cancel").click();
@@ -109,7 +99,7 @@ test("fake call rings, answers and times the call", async ({ page }) => {
 });
 
 test("a community report is stored locally and adjusts the hex score", async ({ page }) => {
-  const h3 = await page.evaluate(async () => { const j = await (await fetch("/data/mumbai_demo/cells.json")).json(); return j.cells[10][0] as string; });
+  const h3 = await page.evaluate(async () => { const idx = await (await fetch("/data/index.json")).json(); const j = await (await fetch(`/data/${idx.cities[0].id}/cells.json`)).json(); return j.cells[10][0] as string; });
   const before = await page.evaluate((h) => (window as any).__raksha.city.getState().lookup, h3).then(() => page.evaluate((h) => { const c = (window as any).__raksha.city.getState(); return c.cells.get(h).scores[2] as number; }, h3));
   await page.evaluate((h) => (window as any).__raksha.mapUi.getState().set({ hexTap: { h3: h, nonce: 1 } }), h3);
   await expect(page.getByTestId("hex-reasons")).toBeVisible();
@@ -124,8 +114,7 @@ test("a community report is stored locally and adjusts the hex score", async ({ 
 test.describe("journey", () => {
   test.setTimeout(240_000);
   test("simulated night walk: heads-up before the stretch, then Guard mode with the one-hand dock", async ({ page }) => {
-    await setSetting(page, { simSpeed: 40 });
-    await openDemo(page, "night-walk");
+    await planRoute(page);
     await page.getByTestId("simulate-walk").click();
     await expect(page.getByTestId("journey")).toBeVisible();
     await expect(page.getByTestId("instruction")).toBeVisible();

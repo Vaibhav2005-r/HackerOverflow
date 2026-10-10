@@ -21,13 +21,14 @@ const CYCLE: Band[] = ["day", "evening", "night"];
 
 export default function Home() {
   const t = useT();
-  const meta = useCity((s) => s.meta);
+  const index = useCity((s) => s.index);
+  const coverageAt = useCity((s) => s.coverageAt);
   const cityStatus = useCity((s) => s.status);
   const hexTap = useMapUi((s) => s.hexTap);
   const user = useJourney((s) => s.user);
   const hasLine = useJourney((s) => !!s.sakhi.text);
-  const { showHex, demoBand, set } = useSettings();
-  const band = useBand(demoBand);
+  const { showHex, testMode, set } = useSettings();
+  const band = useBand();
   useNow(20_000);
   const [hex, setHex] = useState<string | null>(null);
   const [spots, setSpots] = useState(false);
@@ -37,9 +38,10 @@ export default function Home() {
   useEffect(() => { if (hexTap) setHex(hexTap.h3); }, [hexTap]);
   useEffect(() => { if (!hasLine) greet(); }, [hasLine]);
 
-  const inside = !!(user && meta && user.lat >= meta.bbox[0] && user.lat <= meta.bbox[2] && user.lng >= meta.bbox[1] && user.lng <= meta.bbox[3]);
+  const covered = !user || index.length === 0 || !!coverageAt(user.lat, user.lng);
   const time = fmtClock(clock.now());
-  const cycle = () => set({ demoBand: CYCLE[(CYCLE.indexOf(band) + 1) % 3]! });
+  // in Test mode the chip cycles the pretend time of day; otherwise it is just the clock
+  const cycle = testMode ? () => set({ demoBand: CYCLE[(CYCLE.indexOf(band) + 1) % 3]! }) : undefined;
 
   return (
     <div className="pointer-events-none absolute inset-0" data-testid="home">
@@ -57,7 +59,7 @@ export default function Home() {
         <CompanionBar />
         {cityStatus === "loading" && <p className="chip glass" role="status">{t("home.loadingCity")}</p>}
         {!online && <p className="chip glass" role="status">{t("home.offline")}</p>}
-        {user && meta && !inside && <p className="chip glass" role="status">{t("home.outside")}</p>}
+        {!covered && <p className="chip glass" role="status" data-testid="no-coverage">{t("home.noCoverage")}</p>}
       </div>
 
       <div className="pointer-events-auto absolute right-4 top-[300px] flex flex-col items-end gap-2">
