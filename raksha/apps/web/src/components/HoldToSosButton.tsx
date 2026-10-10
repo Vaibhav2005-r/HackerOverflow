@@ -35,8 +35,8 @@ export function HoldToSosButton({ onComplete, size = "M" }: { onComplete: () => 
       onKeyDown={(e) => { if ((e.key === " " || e.key === "Enter") && !e.repeat) { e.preventDefault(); begin(); } }}
       onKeyUp={(e) => { if (e.key === " " || e.key === "Enter") stop(); }}>
       <span className="grid place-items-center rounded-full text-center" style={{ width: inner, height: inner, background: "#1F0A12" }}>
-        <span className="font-bold text-sos" style={{ fontSize: xl ? 36 : 15, letterSpacing: ".06em", lineHeight: 1 }}>SOS
-          {xl && <span className="mt-1.5 block text-xs font-medium tracking-normal text-text-2">{held ? t("guard.holding") : t("guard.hold2")}</span>}
+        <span className="font-bold" style={{ color: "#FF3B5C", fontSize: xl ? 36 : 15, letterSpacing: ".06em", lineHeight: 1 }}>SOS
+          {xl && <span className="mt-1.5 block text-xs font-medium tracking-normal" style={{ color: "#B3ADC7" }}>{held ? t("guard.holding") : t("guard.hold2")}</span>}
         </span>
       </span>
     </motion.button>

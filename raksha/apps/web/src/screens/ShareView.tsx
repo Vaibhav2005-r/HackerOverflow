@@ -5,6 +5,7 @@ import { EMERGENCY, telLink } from "@raksha/core";
 import type { ShareView as View } from "../services/backend/types";
 import { getShareClient } from "../services/shareClient";
 import { fallbackStyle, loadBaseStyle, toNight } from "../map/style";
+import { configureMapWorker } from "../map/worker";
 import { useT } from "../i18n";
 import "../styles/tokens.css";
 
@@ -37,6 +38,7 @@ export default function ShareView({ token }: { token: string }) {
       const [lib] = await Promise.all([import("maplibre-gl"), import("maplibre-gl/dist/maplibre-gl.css")]);
       if (dead || !box.current) return;
       ml.current = lib;
+      configureMapWorker(lib);
       const base = await loadBaseStyle();
       const style = base ? toNight(base) : fallbackStyle(true);
       const mp = (map.current = new lib.Map({ container: box.current, style, center: [72.857, 19.19], zoom: 15, attributionControl: { compact: true } }));

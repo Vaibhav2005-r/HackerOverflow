@@ -50,7 +50,7 @@ export default function Search() {
       <span className="min-w-0"><span className="block truncate text-[15px] font-semibold">{p.name}</span>{p.detail && <span className="block truncate text-[13px] text-text-2">{p.detail}</span>}</span>
     </button></li>
   );
-  const Head = ({ children }: { children: string }) => <h3 className="eyebrow mb-1 mt-5 px-2 text-text-3">{children}</h3>;
+  const Head = ({ children }: { children: string }) => <h3 className="eyebrow mb-1 mt-5 px-2 text-text-2">{children}</h3>;
 
   return (
     <motion.div className="absolute inset-x-0 bottom-0 top-[54px] z-20 flex flex-col rounded-t-[28px] bg-bg-1 px-4 pt-4 shadow-elev" data-testid="search-screen"

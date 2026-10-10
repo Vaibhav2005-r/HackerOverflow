@@ -7,6 +7,7 @@ import { useSettings } from "../store/settings";
 import { useBand } from "../lib/useBand";
 import { CLASS_COLOR, SPOT_STROKE } from "./colors";
 import { fallbackStyle, loadBaseStyle, toNight } from "./style";
+import { configureMapWorker } from "./worker";
 
 const FALLBACK_CENTER: [number, number] = [72.857, 19.19];
 const EMPTY = { type: "FeatureCollection", features: [] } as const;
@@ -136,6 +137,7 @@ export default function MapView({ hidden }: { hidden: boolean }) {
       const [ml] = await Promise.all([import("maplibre-gl"), import("maplibre-gl/dist/maplibre-gl.css")]);
       if (cancelled || !box.current) return;
       mlRef.current = ml;
+      configureMapWorker(ml);
       const meta = useCity.getState().meta;
       const center: [number, number] = meta ? [(meta.bbox[1] + meta.bbox[3]) / 2, (meta.bbox[0] + meta.bbox[2]) / 2] : FALLBACK_CENTER;
       const map = new ml.Map({ container: box.current, style: fallbackStyle(dark), center, zoom: 13.6, attributionControl: { compact: true }, maxPitch: 60 });

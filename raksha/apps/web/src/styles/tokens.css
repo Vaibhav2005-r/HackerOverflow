@@ -3,7 +3,7 @@
 /* ---------- Design tokens (from design_handoff_raksha_hero_flow/tokens.css) ---------- */
 :root, [data-theme="night"] {
   --bg-0: #0B0A14; --bg-1: #13111E; --surface-1: #1B1929; --surface-2: #24213A; --line: #332F4A;
-  --text-1: #F5F2FB; --text-2: #B3ADC7; --text-3: #7A7493;
+  --text-1: #F5F2FB; --text-2: #B3ADC7; --text-3: #8F89AA; /* handoff #7A7493 is 3.7:1 on card surfaces; lifted for WCAG AA */
   --brand: #8E7CFF; --brand-soft: #B3A8FF; --brand-ink: #0B0A14;
   --sakhi-a: #5EEAD4; --sakhi-b: #8E7CFF;
   --cls-comfortable: #34D399; --cls-stay-alert: #FFB547; --cls-extra-care: #FF7A6B;
@@ -17,7 +17,7 @@
 }
 [data-theme="day"] {
   --bg-0: #FAF7F2; --bg-1: #F4F0EA; --surface-1: #FFFFFF; --surface-2: #F2EEF8; --line: #E4DEEE;
-  --text-1: #1B1530; --text-2: #5D5672; --text-3: #9690A8;
+  --text-1: #1B1530; --text-2: #5D5672; --text-3: #6B6584; /* handoff had #9690A8 (2.9:1); darkened for WCAG AA */
   --brand: #6C5CE7; --brand-soft: #6C5CE7; --brand-ink: #FFFFFF; --sakhi-a: #14B8A6; --sakhi-b: #6C5CE7;
   --cls-comfortable: #10A374; --cls-stay-alert: #D98A0B; --cls-extra-care: #E2553F; --sos: #E11D48;
   --map-land: #F2EFE8; --map-block: #EAE6DD; --map-road: #FFFFFF; --map-road-major: #FFFFFF; --map-water: #CFE3F2;
