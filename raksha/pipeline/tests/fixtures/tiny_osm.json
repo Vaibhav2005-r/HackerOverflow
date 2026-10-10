@@ -1,0 +1,208 @@
+{
+ "roads": [
+  {
+   "type": "way",
+   "id": 1,
+   "tags": {
+    "highway": "primary",
+    "lit": "yes"
+   },
+   "geometry": [
+    {
+     "lat": 19.2,
+     "lon": 72.85
+    },
+    {
+     "lat": 19.2,
+     "lon": 72.853
+    }
+   ]
+  },
+  {
+   "type": "way",
+   "id": 2,
+   "tags": {
+    "highway": "track",
+    "lit": "no"
+   },
+   "geometry": [
+    {
+     "lat": 19.22,
+     "lon": 72.86999999999999
+    },
+    {
+     "lat": 19.22,
+     "lon": 72.87299999999999
+    }
+   ]
+  },
+  {
+   "type": "way",
+   "id": 3,
+   "tags": {
+    "highway": "residential"
+   },
+   "geometry": [
+    {
+     "lat": 19.18,
+     "lon": 72.85
+    },
+    {
+     "lat": 19.18,
+     "lon": 72.85199999999999
+    }
+   ]
+  },
+  {
+   "type": "way",
+   "id": 4,
+   "tags": {
+    "highway": "residential",
+    "tunnel": "yes"
+   },
+   "geometry": [
+    {
+     "lat": 19.16,
+     "lon": 72.85
+    },
+    {
+     "lat": 19.16,
+     "lon": 72.85199999999999
+    }
+   ]
+  }
+ ],
+ "pois": [
+  {
+   "type": "node",
+   "id": 10,
+   "lat": 19.200499999999998,
+   "lon": 72.851,
+   "tags": {
+    "amenity": "police",
+    "name": "Test PS"
+   }
+  },
+  {
+   "type": "node",
+   "id": 11,
+   "lat": 19.2003,
+   "lon": 72.85119999999999,
+   "tags": {
+    "amenity": "restaurant",
+    "opening_hours": "Mo-Su 10:00-23:30"
+   }
+  },
+  {
+   "type": "node",
+   "id": 12,
+   "lat": 19.2,
+   "lon": 72.85149999999999,
+   "tags": {
+    "shop": "convenience"
+   }
+  },
+  {
+   "type": "node",
+   "id": 13,
+   "lat": 19.2004,
+   "lon": 72.8504,
+   "tags": {
+    "amenity": "fuel",
+    "opening_hours": "24/7"
+   }
+  },
+  {
+   "type": "node",
+   "id": 14,
+   "lat": 19.2002,
+   "lon": 72.8502,
+   "tags": {
+    "highway": "bus_stop"
+   }
+  },
+  {
+   "type": "node",
+   "id": 15,
+   "lat": 19.200599999999998,
+   "lon": 72.8506,
+   "tags": {
+    "railway": "station",
+    "name": "Test Stn"
+   }
+  }
+ ],
+ "buildings": [
+  {
+   "type": "way",
+   "id": 20,
+   "center": {
+    "lat": 19.2003,
+    "lon": 72.8505
+   }
+  },
+  {
+   "type": "way",
+   "id": 21,
+   "center": {
+    "lat": 19.2003,
+    "lon": 72.85052999999999
+   }
+  },
+  {
+   "type": "way",
+   "id": 22,
+   "center": {
+    "lat": 19.2003,
+    "lon": 72.85056
+   }
+  },
+  {
+   "type": "way",
+   "id": 23,
+   "center": {
+    "lat": 19.2003,
+    "lon": 72.85059
+   }
+  },
+  {
+   "type": "way",
+   "id": 24,
+   "center": {
+    "lat": 19.2003,
+    "lon": 72.85061999999999
+   }
+  }
+ ],
+ "areas": [
+  {
+   "type": "way",
+   "id": 30,
+   "tags": {
+    "landuse": "industrial"
+   },
+   "geometry": [
+    {
+     "lat": 19.215,
+     "lon": 72.865
+    },
+    {
+     "lat": 19.215,
+     "lon": 72.88
+    },
+    {
+     "lat": 19.23,
+     "lon": 72.88
+    },
+    {
+     "lat": 19.23,
+     "lon": 72.865
+    },
+    {
+     "lat": 19.215,
+     "lon": 72.865
+    }
+   ]
+  }
+ ]
+}

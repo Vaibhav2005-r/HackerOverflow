@@ -1,0 +1,44 @@
+# Supabase CLI project config (local dev: `pnpm db:start`). Hosted projects need the same auth settings enabled in the dashboard.
+project_id = "raksha"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:5173"
+additional_redirect_urls = ["http://127.0.0.1:5173"]
+jwt_expiry = 3600
+enable_signup = true
+enable_anonymous_sign_ins = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
+[functions.share-view]
+verify_jwt = false   # public, token-gated: contacts have no account
+
+[functions.sos-notify]
+verify_jwt = true
+
+[functions.delete-account]
+verify_jwt = true

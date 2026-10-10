@@ -1,0 +1,23 @@
+{
+  "name": "@raksha/core",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build-cells": "tsx src/scoring/build-cells.ts",
+    "test:cov": "vitest run --coverage",
+    "seed:make": "tsx scripts/make-seed.mts"
+  },
+  "dependencies": {
+    "h3-js": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "@vitest/coverage-v8": "^5.0.3",
+    "tsx": "^4.23.15"
+  }
+}

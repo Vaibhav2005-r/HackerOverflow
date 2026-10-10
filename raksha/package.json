@@ -1,0 +1,32 @@
+{
+  "name": "raksha",
+  "private": true,
+  "packageManager": "pnpm@12.6.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "preview": "pnpm --filter web preview --host",
+    "test": "pnpm -r --if-present test",
+    "test:e2e": "pnpm --filter web test:e2e",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "pnpm -r --if-present lint",
+    "check": "pnpm typecheck && pnpm lint && pnpm test",
+    "pipeline:run": "cd pipeline && .venv/bin/python -m raksha_pipeline.run --city mumbai_demo",
+    "pipeline:test": "cd pipeline && .venv/bin/pytest",
+    "db:start": "supabase start",
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db",
+    "functions:serve": "supabase functions serve",
+    "db:verify-local": "bash supabase/tests/support/run-local.sh",
+    "functions:test": "DENO_NO_PACKAGE_JSON=1 deno test --no-lock supabase/functions/_shared",
+    "functions:check": "DENO_NO_PACKAGE_JSON=1 deno check --no-lock supabase/functions/share-view/index.ts supabase/functions/sos-notify/index.ts supabase/functions/delete-account/index.ts"
+  },
+  "devDependencies": {
+    "fast-check": "^4.10.2",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3"
+  }
+}

@@ -1,0 +1,8 @@
+mumbai_demo:
+  name: "Mumbai — Kandivali to Goregaon"
+  bbox: [19.150, 72.820, 19.230, 72.895]   # S, W, N, E
+  h3_res: 9
+durgapur:
+  name: "Durgapur"
+  bbox: [23.480, 87.240, 23.580, 87.360]
+  h3_res: 9

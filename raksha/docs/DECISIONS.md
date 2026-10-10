@@ -1,0 +1,57 @@
+# Decisions
+
+Choices made where the spec was silent or needed adjusting (safer → simpler → testable).
+
+## Phase 0
+- TypeScript pinned to ^6: typescript-eslint does not support TS 7 yet.
+- MapLibre is lazy-loaded (own ~290 KB gzip chunk); the chunk-size warning limit was raised so the build stays quiet.
+- Design tokens in `apps/web/src/styles/tokens.css` are placeholders until `RAKSHA_DESIGN_BRIEF.md` / `design/` is supplied.
+
+## Phase 1 — pipeline & scoring
+- **Evening isolation** uses `iso_night` (parks/open land are isolating once it is dark, 18:00+); only DAY uses `iso_day`.
+- **Fuel stations count as "help"** only if open 24/7, open late, or have no hours tagged (night weight ≥ 0.5). Hours-tagged day-only stations do not.
+- **Single reasons mask per cell** in `cells.json`: the NIGHT-band reasons (strictest) plus positive bits (WELL_LIT 256, BUSY_STREET 512, HELP_NEARBY 1024, TRANSIT_NEARBY 2048). Per-band reasons for day/evening are not exported (keeps the file small).
+- **Features file carries `poi_k1`** (cells with any POI/building within k=1) so the TS scorer can apply the "low confidence" rule without re-reading OSM.
+- **Calibration percentiles: low anchor P3 (was P5), high anchor P95.** First run gave NIGHT EXTRA_CARE = 25.5% on 643 cells of `mumbai_demo` (target 5–25%). Moving only the low calibration anchor to P3 gave 23.8%. No cell was edited by hand. Constants: `CAL_LO`/`CAL_HI` in `packages/core/src/scoring/score.ts`.
+- **Because each band is calibrated separately** (P→15/90), per-band class *distributions* are similar by construction; what differs between bands is *which* cells land in each class. This is a consequence of the spec's per-band affine map, not a bug.
+- OSM building coverage in the demo bbox is thin (~10.7k footprints), so `built` is a weak signal there; it carries only 0.05–0.20 weight.
+- Overpass is queried per section (roads / POIs / buildings / areas) with mirror rotation and retry because public instances time out under load. Raw responses are cached in `data/raw/` (gitignored).
+
+## Phase 2 — core logic
+- **"Well-lit" is claimed only from the `WELL_LIT` flag** (cell light ≥ 0.7: explicit `lit` tag or a major road), not from the absence of `UNLIT`. A first check on real OSRM routes showed 100% "lit" because untagged residential roads get a 0.45 default prior; showing that as "100% well-lit" would overstate what the data says (spec §15).
+- **`chooseRoutes` "no route within 1.35×"**: the fastest route always satisfies the window, so the spec's fallback is read as "no *alternative* within 1.35×". Then the best-RSI route overall is returned with `safestMuchLonger = true`.
+- **Stretch merging**: adjacent non-comfortable runs are merged when the gap is ≤ max(30 m, sample step). Runs shorter than 75 m are dropped. A stretch's class is its worst cell class.
+- **Engine owns no timers**: `reduce(state, event, ctx)` is pure; the host sends `TICK` about once a second. Countdown ticks, check-in expiry, the walk-with-me deadline and the 1-fix + 10 s Guard rule all advance on `TICK`/`POSITION`.
+- **Guard auto-exit** happens only after 60 s continuously in COMFORTABLE cells. STAY_ALERT never exits Guard by itself (fail-safe); the spec's "STAY_ALERT keeps guard if entered < 60 s ago" is subsumed by this.
+- **SAY effects carry `audible`**: SOS in silent mode emits text-only SAY (never TTS). Duress cancel emits no SAY and no HAPTIC at all (tested).
+- **Wrong-PIN lockout**: 3 wrong PINs stay in SOS_ACTIVE and lock cancelling for 30 s. A correct PIN given during the lock is ignored.
+- **Duress then real PIN**: after a duress cancel (SOS_DURESS) the real PIN still resolves the SOS.
+- **Check-in expiry** (non-timer reasons) = soft alert: notify circle, start live share, stay in Guard. **Timer** check-in expiry escalates to the 3 s SOS countdown.
+- **Community adjustment** is computed client-side from server/local aggregates; the `REPORTS` reason is set when decayed negative weight ≥ 1.5. Neighbour spill is 0.5× and only applied to the delta, not to the flag.
+- Hindi message bank is stubbed (`hi: {}`) — falls back to English until P1; the key-completeness test runs over `SHIPPED_LANGS` (currently `en`).
+- Not in the engine/core (left to the web layer): TTS, vibration, wake lock, Kalman smoothing (EMA α 0.5 is used for the display dot).
+
+## Phase 3 — frontend (design handoff: `design_handoff_raksha_hero_flow`)
+- **Tokens/type**: `apps/web/src/styles/tokens.css` is the handoff `tokens.css` (+ Tailwind v4 `@theme inline` mapping). Plus Jakarta Sans is bundled via `@fontsource` (Latin only) so it works offline. Hindi (Mukta) arrives with the Hindi pass.
+- **Where the README and the product spec differ** (spec wins, flagged): the PinPad is 4 digits with auto-submit as designed (core still accepts 4–6 for stored PINs). The README's "Recording audio ✓" and "Circle notified ✓" rows are shown **only when true** on this device: recording shows a live timer or "Mic unavailable"; "Circle notified" turns ✓ once she has sent the link (a browser cannot message contacts by itself).
+- **Duress**: real and duress PINs both land on the same *Resolved* screen. The duress branch never opens a share dialog or tells anyone she is "safe"; it only shows the success state. The contact view keeps showing SOS active + "possible coercion" (e2e-tested).
+- **Not built yet from the handoff**: orb states `speaking`, `checkIn`, `offline` (README: spec from the brief, which was not supplied); Day-theme visual pass; route draw-on is a 600 ms fade instead of a trim animation.
+- **Map**: persistent MapLibre instance with the handoff palette; safe-spot glyph circles from zoom 14.2; hexes fade with distance from her; Extra-care hexes shimmer (off with reduced motion / the setting). MapLibre's CSS forces `position: relative` on its container, so sizing lives on a wrapper (this once collapsed the map to 300 px).
+- **Demo routes**: `TCET → Kandivali` and a reversed "Night walk past the park edge" (starts on comfortable streets, Extra-care stretch ahead, so heads-up → Guard actually fires). Routing fixtures are bundled, so the demo works offline. Honest finding: in this area OSM walking alternatives are usually near-identical, so a dramatic safest-vs-fastest gap is rare; the demo leans on weak-stretch warnings and Guard instead.
+- **Engine fix found by e2e**: ending Guard by hand inside an Extra-care cell used to bounce straight back in (streak counters stayed primed). Manual exit now clears the streaks and suppresses auto-Guard for 2 min (`guard.manualExitSuppressMs`), with a unit test.
+- **Position publishing**: a share/SOS session now publishes the last known position immediately (a stationary phone sends no new fixes).
+- **Performance budget (spec §3: initial JS ≤ 180 KB gzip excl. MapLibre)**: currently ≈ 270 KB gzip (react + motion + h3-js + app). Not met yet. Candidates: `LazyMotion`, loading h3-js after first paint, dropping `zod` from the client. MapLibre itself (289 KB gzip) is lazy.
+- `window.__raksha` exposes the stores in dev builds only, for e2e.
+
+## Phase 4 — backend (Supabase)
+- **Verification without Docker**: this machine has no Docker/Supabase CLI, so `supabase test db` could not run here. Instead `pnpm db:verify-local` starts a throwaway PostgreSQL 17 + PostGIS, applies a small shim for Supabase's `auth`/`storage`/roles (`supabase/tests/support/shim.sql`), runs all four migrations, the five pgTAP files (101 assertions) and `seed.sql`. A mutation check (deliberately weakening the points-insert policy, the duress flag and the reports privilege) made the tests fail exactly where expected. **Not yet run against a real Supabase stack** — do `pnpm db:start && pnpm db:reset && pnpm db:test` once Docker is available. Edge functions are type-checked with Deno (`pnpm functions:check`) and their rate limiter is unit-tested, but they have not been executed against a live project.
+- **Stricter than the spec on purpose**: `share_sessions` and `sos_events` have no insert/update/delete policies at all (the spec allowed owner update on sessions); every write goes through an RPC. `start_share` refuses kind `sos` (only `start_sos` creates SOS sessions). `authenticated` has no privileges on `reports`.
+- **RPC argument names** are prefixed `p_` (e.g. `p_kind`) to avoid clashing with column names in PL/pgSQL; error messages are stable codes (`rate_limited`, `duplicate`, `too_far`, `circle_full`, …) that the client maps to friendly text.
+- **`share_view_data()`** (execute: `service_role` only) holds the contact-view logic in SQL so it is pgTAP-tested; the `share-view` function only adds CORS, a 1 req / 2 s / token limiter and signed URLs for SOS clips. Invalid, malformed and long-expired tokens all return 404 with no detail. Ended sessions stay viewable for one hour.
+- **Duress after real PIN**: `resolve_sos(duress=true)` keeps the session active and sets `coercion`; a later `resolve_sos(false)` still ends it (tested).
+- **Location points** use the owner-insert RLS policy (not an RPC); `recorded_at` is the server's `now()` so a client clock cannot rewrite history. Geography is sent as EWKT (`SRID=4326;POINT(lng lat)`).
+- **Realtime is polling (3 s)** for the contact page: no auth, no SDK in that bundle (`/s/:token` chunk is ~2 KB gzip). `supabase-js` is a lazy chunk (~56 KB gzip) loaded only when both env vars exist, so local-mode judges never download it.
+- **Evidence audio**: recorded in 10 s chunks, always kept in IndexedDB, uploaded to the private `evidence` bucket (`<uid>/<sos_id>/<seq>.webm`) with a retry queue; the `evidence_clips` row is written after the upload. A closed tab stops recording (browser limit).
+- **Report anti-spam**: the 400 m check trusts the position the client sends; without GPS the client sends the cell centre, so only the 5/24 h and 1-per-cell-band limits apply. Documented as best-effort.
+- **Seeds**: `seed.sql` and `public/data/mumbai_demo/seed_reports.json` come from one generator (`pnpm --filter @raksha/core seed:make`), so local mode and Supabase mode show the same ~20 demo reports.
+- Deno quirk: run it with `DENO_NO_PACKAGE_JSON=1` (the scripts do), otherwise it rewrites the root `package.json` and creates a `deno.lock`.
