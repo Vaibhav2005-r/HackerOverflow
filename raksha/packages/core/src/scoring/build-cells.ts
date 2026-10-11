@@ -6,13 +6,14 @@ import { BANDS, type CellFeatures } from "./types";
 
 import { initH3 } from "../util/h3";
 await initH3();
-const [, , featPath, outDir] = process.argv;
+const [, , featPath, outDir, calFlag, calPath] = process.argv;
 if (!featPath || !outDir) { console.error("usage: build-cells <features.json> <outDir>"); process.exit(2); }
 
 const src = JSON.parse(readFileSync(featPath, "utf8")) as {
   city: string; name: string; bbox: number[]; res: number; generated_at: string; cells: CellFeatures[];
 };
-const { calibration, cells } = scoreCity(src.cells);
+const fixed = calFlag === "--calibration" && calPath ? (JSON.parse(readFileSync(calPath, "utf8")) as { calibration: never }).calibration : undefined;
+const { calibration, cells } = scoreCity(src.cells, fixed);
 
 const rows = src.cells.map((f) => {
   const c = cells.get(f.h3)!;

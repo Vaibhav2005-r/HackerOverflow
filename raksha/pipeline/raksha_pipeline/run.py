@@ -8,6 +8,7 @@ import json
 from .io import ROOT, WEB_DATA, load_city, load_all, write_json, RAW_DIR
 from . import fetch_osm, fetch_pbf
 from .features import compute_features
+from .norms import load_norms
 from .safe_spots import extract
 
 
@@ -33,7 +34,7 @@ def run_city(city_id: str, refresh: bool) -> None:
     # regional Geofabrik extract when available (reliable, offline-processable); public Overpass otherwise
     use_pbf = city.get("pbf") and (fetch_pbf.PBF_DIR / f"{city['pbf']}.osm.pbf").exists()
     osm = (fetch_pbf if use_pbf else fetch_osm).fetch(city, refresh)
-    feats, pois = compute_features(osm, cover(city["bbox"], res), res, ((s + n) / 2, (w + e) / 2))
+    feats, pois = compute_features(osm, cover(city["bbox"], res), res, ((s + n) / 2, (w + e) / 2), norms=load_norms())
     out_dir = WEB_DATA / city_id
     feat_path = RAW_DIR / f"features_{city_id}.json"
     write_json(feat_path, {"city": city_id, "name": city["name"], "bbox": city["bbox"], "res": res,
@@ -42,7 +43,9 @@ def run_city(city_id: str, refresh: bool) -> None:
     spots = extract(pois)
     write_json(out_dir / "safe_spots.json", {"v": 1, "city": city_id, "spots": spots})
     print(f"{city_id}: {len(feats)} cells, {len(spots)} safe spots")
-    subprocess.run(["pnpm", "--filter", "@raksha/core", "build-cells", str(feat_path), str(out_dir)], cwd=ROOT, check=True)
+    cal = WEB_DATA / "calibration.json"
+    extra = ["--calibration", str(cal)] if cal.exists() else []      # national scale once it exists (see docs/DECISIONS.md)
+    subprocess.run(["pnpm", "--filter", "@raksha/core", "build-cells", str(feat_path), str(out_dir), *extra], cwd=ROOT, check=True)
 
 
 def main() -> None:

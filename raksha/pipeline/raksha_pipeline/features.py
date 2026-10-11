@@ -127,10 +127,13 @@ def pct95(vals: list[float]) -> float:
     return float(np.percentile(vals, 95)) if vals else 1.0
 
 
-def normalise(raw: dict[str, float]) -> dict[str, float]:
+def normalise(raw: dict[str, float], p95: float | None = None) -> tuple[dict[str, float], float]:
+    """log1p(x)/log1p(P95), clipped to 1. `p95` is the scale; with None it is measured from this area (per-city mode).
+    Tiles of a state use ONE national scale (config/norms.json) — otherwise a village with three shops would score like a market."""
     pos = [v for v in raw.values() if v > 0]
-    denom = math.log1p(pct95(pos)) or 1.0
-    return {k: min(1.0, math.log1p(v) / denom) for k, v in raw.items()}
+    p95 = p95 if p95 is not None else pct95(pos)
+    denom = math.log1p(p95) or 1.0
+    return {k: min(1.0, math.log1p(v) / denom) for k, v in raw.items()}, p95
 
 
 def with_neighbours(own: dict[str, float], res: int) -> dict[str, float]:
@@ -144,7 +147,8 @@ def with_neighbours(own: dict[str, float], res: int) -> dict[str, float]:
 
 
 # ---------- main ----------
-def compute_features(osm: dict, cells_cover: set[str], res: int, centre: tuple[float, float]) -> tuple[list[dict], list[dict]]:
+def compute_features(osm: dict, cells_cover: set[str], res: int, centre: tuple[float, float],
+                     norms: dict[str, float] | None = None, norms_out: dict[str, float] | None = None) -> tuple[list[dict], list[dict]]:
     """Returns (features list, safe-spot-source POIs)."""
     proj = Proj(*centre)
 
@@ -194,9 +198,12 @@ def compute_features(osm: dict, cells_cover: set[str], res: int, centre: tuple[f
 
     cells = {c for c in cells_cover if length.get(c) or poi_cnt.get(c) or bcount.get(c)}
 
-    act_day = normalise(with_neighbours(day_raw, res))
-    act_night = normalise(with_neighbours(night_raw, res))
-    built = normalise({c: float(v) for c, v in bcount.items()})
+    n = norms or {}
+    act_day, p_day = normalise(with_neighbours(day_raw, res), n.get("act_day"))
+    act_night, p_night = normalise(with_neighbours(night_raw, res), n.get("act_night"))
+    built, p_built = normalise({c: float(v) for c, v in bcount.items()}, n.get("built"))
+    if norms_out is not None:
+        norms_out.update({"act_day": p_day, "act_night": p_night, "built": p_built})
 
     # distance features (projected metres, KD-trees)
     def tree(pred):

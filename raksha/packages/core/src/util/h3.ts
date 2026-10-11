@@ -4,7 +4,7 @@ import type * as H3Module from "h3-js";
  * h3-js is ~70 KB gzip, and nothing needs it before the city data is loaded. It is therefore imported dynamically:
  * the web app calls `initH3()` right after first paint (in parallel with the city files); Node scripts and tests await it up front.
  */
-type Impl = Pick<typeof H3Module, "latLngToCell" | "gridDisk" | "gridRing" | "cellToLatLng" | "cellToBoundary">;
+type Impl = Pick<typeof H3Module, "latLngToCell" | "gridDisk" | "gridRing" | "cellToLatLng" | "cellToBoundary" | "cellToParent">;
 let impl: Impl | undefined;
 let loading: Promise<void> | undefined;
 

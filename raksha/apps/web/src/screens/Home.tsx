@@ -23,6 +23,7 @@ const CYCLE: Band[] = ["day", "evening", "night"];
 export default function Home() {
   const t = useT();
   const index = useCity((s) => s.index);
+  const nRegions = useCity((s) => s.regions.length);
   const coverageAt = useCity((s) => s.coverageAt);
   const cityStatus = useCity((s) => s.status);
   const hexTap = useMapUi((s) => s.hexTap);
@@ -41,7 +42,7 @@ export default function Home() {
   useEffect(() => { if (!hasLine) greet(); }, [hasLine]);
 
   const here = user ? coverageAt(user.lat, user.lng) : undefined;
-  const covered = !user || index.length === 0 || !!coverageAt(user.lat, user.lng);
+  const covered = !user || (index.length === 0 && nRegions === 0) || !!coverageAt(user.lat, user.lng);
   const time = fmtClock(clock.now());
   // in Test mode the chip cycles the pretend time of day; otherwise it is just the clock
   const cycle = testMode ? () => set({ demoBand: CYCLE[(CYCLE.indexOf(band) + 1) % 3]! }) : undefined;
@@ -89,7 +90,7 @@ export default function Home() {
 
       <ReasonsSheet h3={hex} band={band} onClose={() => setHex(null)} />
       <SafeSpotsSheet open={spots} onOpenChange={setSpots} />
-      <DistrictSheet open={district} onOpenChange={setDistrict} cityId={here?.id} cityName={here?.name} />
+      <DistrictSheet open={district} onOpenChange={setDistrict} cityId={here?.kind === "city" ? here.id : undefined} regionState={here?.kind === "region" ? here.ncrbState : undefined} cityName={here?.name} />
     </div>
   );
 }

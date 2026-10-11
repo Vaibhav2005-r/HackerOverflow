@@ -126,6 +126,18 @@ def ensure_pbf(zone: str) -> Path:
     return path
 
 
+def layers_from_pbf(base: Path, work: Path) -> dict[str, list]:
+    """Filter + export + convert the four layers of an (already bbox-extracted) PBF."""
+    out: dict[str, list] = {}
+    for layer, flt in FILTERS.items():
+        filtered, gj = work / f"{layer}.pbf", work / f"{layer}.geojsonseq"
+        _run(["osmium", "tags-filter", "-O", "-o", str(filtered), str(base), *flt])
+        _run(["osmium", "export", "-O", "-f", "geojsonseq", "--add-unique-id=type_id", "-o", str(gj), str(filtered)])
+        with gj.open(encoding="utf-8") as fh:
+            out[layer] = CONVERT[layer](features(fh))
+    return out
+
+
 def fetch(city: dict, refresh: bool = False) -> dict:
     if shutil.which("osmium") is None:
         raise SystemExit("osmium-tool not found (brew install osmium-tool / apt install osmium-tool)")
@@ -137,12 +149,7 @@ def fetch(city: dict, refresh: bool = False) -> dict:
     if refresh or not base.exists() or base.stat().st_mtime < src.stat().st_mtime:
         print(f"[{city['id']}] extracting bbox from {src.name} ...", file=sys.stderr, flush=True)
         _run(["osmium", "extract", "-b", f"{w},{s},{e},{n}", "--strategy=smart", "-O", "-o", str(base), str(src)])
-    out: dict[str, list] = {}
-    for layer, flt in FILTERS.items():
-        filtered, gj = work / f"{layer}.pbf", work / f"{layer}.geojsonseq"
-        _run(["osmium", "tags-filter", "-O", "-o", str(filtered), str(base), *flt])
-        _run(["osmium", "export", "-O", "-f", "geojsonseq", "--add-unique-id=type_id", "-o", str(gj), str(filtered)])
-        with gj.open(encoding="utf-8") as fh:
-            out[layer] = CONVERT[layer](features(fh))
-        print(f"[{city['id']}] {layer}: {len(out[layer])}", file=sys.stderr, flush=True)
+    out = layers_from_pbf(base, work)
+    for layer, items in out.items():
+        print(f"[{city['id']}] {layer}: {len(items)}", file=sys.stderr, flush=True)
     return out

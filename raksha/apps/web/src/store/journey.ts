@@ -284,6 +284,8 @@ export async function planRoute(from: LngLat, fromName: string, to: LngLat, toNa
     // a short minimum so the skeleton → routes transition does not flicker
     const [routes] = await Promise.all([import("../services/routing").then((r) => r.fetchRoutes(from, to, mode, planAbort!.signal)), sleep(500)]);
     rawRoutes = routes;
+    // long routes cross many tiles: load the ones along every alternative before scoring (no neighbour ring needed)
+    await useCity.getState().ensureFor(routes.flatMap((r) => r.coords.filter((_, i) => i % 40 === 0).map(([lng, lat]) => ({ lat, lng }))), { ring: false });
     if (!rawRoutes.length) { useJourney.setState((s) => ({ plan: s.plan && { ...s.plan, status: "empty" } })); return; }
     const assessments = assessAll(mode);
     const choice = chooseRoutes(assessments);

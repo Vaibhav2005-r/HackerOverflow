@@ -4,6 +4,44 @@
 
 > Raksha helps you stay aware; it can't guarantee safety. In danger, call **112**.
 
+**▶ Demo video:** [`docs/demo.webm`](docs/demo.webm) (onboarding → plan → weak-stretch reasons → hold-to-SOS)
+
+## The problem and our answer
+Women plan around "is that road lit, is it empty, is there help nearby?" every evening, but maps only optimise for *fast*. Existing safety apps are mostly an SOS button after something has gone wrong. Raksha works **before** (route choice and heads-ups), **during** (Guard mode, live share, fake call) and **at the moment of danger** (silent SOS with a duress PIN), and every score comes with a reason a person can read.
+
+## How it all fits together
+```mermaid
+flowchart TD
+    A[Open Raksha<br/>onboarding: name, circle, PIN + duress PIN] --> B[Home: map + safety hexagons<br/>for the current time band]
+    B --> C[Search destination<br/>Photon geocoder]
+    C --> D[2-3 candidate routes<br/>OSRM]
+    D --> E[Score every route per H3 cell<br/>comfort + confidence + reasons]
+    E --> F[Plan screen: Sakhi's pick, trade-off,<br/>each weak stretch explained]
+    F --> G[Journey: live GPS, companion engine]
+    G -->|150 m / 400 m before a weak stretch| H[Heads-up + lit detour offer]
+    G -->|inside Extra-care area| I[Guard mode: one hand,<br/>fake call, nearest safe spot, share]
+    G -->|walk-with-me timer / check-in unanswered| J
+    I --> J{Danger?}
+    J -->|hold SOS 2 s or shake + 3 s countdown| K[SOS: silent by default<br/>live link, audio evidence, 112]
+    K --> L{Cancel with PIN}
+    L -->|real PIN| M[Resolved: circle told 'all clear']
+    L -->|duress PIN| N[Looks identical on screen,<br/>SOS stays active, circle sees 'possible coercion']
+    G --> O[Arrived]
+    O --> P[Optional community report<br/>stored as an H3 cell, never coordinates]
+    P -->|Bayesian, time-decayed| E
+```
+
+```mermaid
+flowchart LR
+    OSM[OpenStreetMap<br/>Geofabrik PBF] --> PIPE[Python pipeline<br/>osmium to H3 features]
+    PIPE --> CAL[National norms +<br/>national calibration]
+    CAL --> SC[TS scorer in packages/core<br/>Day / Evening / Night]
+    SC --> PK[City packs + state tiles<br/>static JSON]
+    PK --> APP[PWA loads only the cells<br/>around her and along her route]
+    NCRB[NCRB district counts] -. context only, not in score .-> APP
+    APP <--> BE[(Local IndexedDB<br/>or Supabase)]
+```
+
 | Home & hex reasons | Plan (3 routes) | Heads-up | Guard |
 |---|---|---|---|
 | ![home](docs/screenshots/01-home.png) | ![plan](docs/screenshots/03-plan.png) | ![headsup](docs/screenshots/04-headsup.png) | ![guard](docs/screenshots/05-guard.png) |
@@ -32,7 +70,7 @@ Real use needs your real location and the real clock. To exercise the night-time
 3. **Guard** — inside an Extra-care area the UI becomes one-handed: hold-to-SOS (2 s), siren, share live location, fake call, nearest safe spot; left/right-hand layout.
 4. **SOS** — silent by default (loud adds a siren), a live link for her circle, audio evidence, one-tap 112. Cancelling needs a PIN; a **duress PIN** shows the same "cancelled" screen but keeps the SOS active and tells the circle "possible coercion". Shake-to-SOS has a 3 s cancellable countdown. A walk-with-me timer and "are you okay?" check-ins escalate if she doesn't answer.
 5. **Built for bad networks** — SOS positions and the cancel/resolve call queue and retry until the backend accepts them (a duress flag survives a reload); if the SOS session can't be created at first, the screen still works (112 / SMS links) while it retries.
-6. **Real coverage** — safety packs are built from OpenStreetMap for Mumbai, Delhi NCR, Bengaluru, Pune, Kolkata, Hyderabad, Chennai and Durgapur (`public/data/index.json`) and loaded for wherever she actually is. Outside a pack, routes still work and are scored cautiously ("limited data"), never shown as comfortable.
+6. **Real coverage, state-wide** — dense city packs for Mumbai, Delhi NCR, Bengaluru, Pune, Kolkata, Hyderabad, Chennai and Durgapur, plus a **state-wide tile pipeline for Maharashtra, Madhya Pradesh and West Bengal** (`pipeline/build_regions.sh`; states whose tiles have finished building are listed in `apps/web/public/data/regions.json`), all built from OpenStreetMap on one national calibration so a cell's class never depends on which file it came from. The app loads only the tile under her and its neighbours, plus tiles along a planned route. Outside coverage, routes still work and are scored cautiously ("limited data"), never shown as comfortable.
 7. **Accounts & languages** — anonymous by default, with an optional email upgrade so her circle follows her to a new phone; English and Hindi.
 
 ## How the safety score works
@@ -49,6 +87,15 @@ docs            SCORING.md, DEPLOY.md, DECISIONS.md, screenshots
 - **Local mode:** no keys → IndexedDB backend; the contact view works across tabs of the same browser.
 - **Supabase mode:** set `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (see `.env.example`) for cross-device live sharing, evidence upload and shared reports. Setup: [`supabase/README.md`](supabase/README.md).
 - **City data:** `pnpm pipeline:run --city all` builds the packs from Geofabrik extracts with osmium (see `docs/DEPLOY.md`); a monthly GitHub workflow refreshes them.
+
+## Future prospects
+- **Native apps** (Android first): power-button / volume SOS, background geofencing, automatic SMS, recording that survives a closed screen.
+- **More states**: the region pipeline is config-driven (`pipeline/config/regions.yaml`), so each new state is one entry plus a Geofabrik zone and a build run.
+- **Better data**: fuse street-light and CCTV datasets from municipal open-data portals, VIIRS night-light imagery and crowd-sourced "lit / busy right now" check-ins, and validate scores against ground-truth walks with partner NGOs.
+- **Community & institutions**: moderated reports with trusted-reporter weighting, verified safe spots (shops, pharmacies, police booths), an anonymised heatmap for city planners and campus security.
+- **Offline-first maps** and Hindi, Bengali and Marathi voice for Sakhi; more Indian languages.
+- **Per-trip safety briefing** shared with the circle, and ride-hail integration (share the cab route and alert on deviation).
+- **Production hardening**: end-to-end run on a full Supabase stack, push fan-out tests, a third-party security review.
 
 ## Tests
 ```bash

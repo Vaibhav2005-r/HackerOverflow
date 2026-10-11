@@ -110,6 +110,7 @@ export const en = {
   "ncrb.caveat1": "These are registered cases in selected categories — not a measure of how safe a street is. More cases can reflect easier access to reporting rather than more crime. They are counts, not rates, so large districts rank high by size alone.",
   "ncrb.caveat2": "This district-level context is not used in the street-level safety score.", "ncrb.source": "Source: NCRB, Crime in India (via India Data Portal)", "ncrb.all": "Compare cities",
   "insights.title": "Insights", "insights.sub": "Registered cases by city district, {year}. Counts, not rates.", "home.district": "District data",
+  "ncrb.stateRank": "{state} (all districts): {rank} of {n} states by registered cases ({year})",
   "share.prompt": "I couldn't reach you, so your circle can follow your live location.",
   "sakhi.idle": "I'm here. Tell me where you're headed, or turn on Guard.",
   "sakhi.loading": "Getting ready…",

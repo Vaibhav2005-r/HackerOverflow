@@ -1,0 +1,51 @@
+{
+ "v": 1,
+ "norms": {
+  "act_day": 26.629,
+  "act_night": 6.775,
+  "built": 204.675
+ },
+ "per_city": {
+  "mumbai": {
+   "act_day": 30.799999999999997,
+   "act_night": 7.9,
+   "built": 75.0
+  },
+  "delhi": {
+   "act_day": 46.900000000000006,
+   "act_night": 6.949999999999999,
+   "built": 166.0
+  },
+  "bengaluru": {
+   "act_day": 61.575,
+   "act_night": 8.750000000000002,
+   "built": 344.0
+  },
+  "pune": {
+   "act_day": 27.479999999999926,
+   "act_night": 6.6,
+   "built": 169.0
+  },
+  "kolkata": {
+   "act_day": 13.850000000000001,
+   "act_night": 5.5,
+   "built": 307.0
+  },
+  "hyderabad": {
+   "act_day": 25.77750000000001,
+   "act_night": 6.3500000000000005,
+   "built": 310.0
+  },
+  "chennai": {
+   "act_day": 25.5,
+   "act_night": 7.049999999999999,
+   "built": 231.64999999999964
+  },
+  "durgapur": {
+   "act_day": 4.519999999999999,
+   "act_night": 2.0,
+   "built": 177.7
+  }
+ },
+ "method": "median of per-city P95 over the extracted cities"
+}

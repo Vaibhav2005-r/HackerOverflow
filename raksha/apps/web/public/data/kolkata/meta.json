@@ -10,42 +10,42 @@
  ],
  "res": 9,
  "cellCount": 4959,
- "generated_at": "2026-10-10T18:15:18+00:00",
+ "generated_at": "2026-10-11T05:40:38+00:00",
  "calibration": {
   "day": {
-   "a": 115.19325280864189,
-   "b": 9.414774502296032,
-   "p5": 0.0484857,
-   "p95": 0.6995655
+   "a": 102.9885562549242,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.7282362499999996
   },
   "evening": {
-   "a": 128.79419100418946,
-   "b": 9.723546703521265,
-   "p5": 0.040968100000000014,
-   "p95": 0.6232924999999999
+   "a": 113.54329254353631,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.6605409999999998
   },
   "night": {
-   "a": 122.3510987128665,
-   "b": 12.291269025595854,
-   "p5": 0.02213899999999995,
-   "p95": 0.6351289999999996
+   "a": 112.38943689145806,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.6673224999999998
   }
  },
  "distributionPct": {
   "day": {
-   "COMFORTABLE": 25.5,
-   "STAY_ALERT": 36.3,
-   "EXTRA_CARE": 38.1
+   "COMFORTABLE": 24,
+   "STAY_ALERT": 41.5,
+   "EXTRA_CARE": 34.5
   },
   "evening": {
-   "COMFORTABLE": 24,
-   "STAY_ALERT": 42.5,
-   "EXTRA_CARE": 33.5
+   "COMFORTABLE": 20.5,
+   "STAY_ALERT": 51.3,
+   "EXTRA_CARE": 28.2
   },
   "night": {
-   "COMFORTABLE": 27.3,
-   "STAY_ALERT": 53.9,
-   "EXTRA_CARE": 18.8
+   "COMFORTABLE": 24.3,
+   "STAY_ALERT": 57.3,
+   "EXTRA_CARE": 18.4
   }
  },
  "attribution": "© OpenStreetMap contributors (ODbL). Scores are estimates from open map data; conditions can change."

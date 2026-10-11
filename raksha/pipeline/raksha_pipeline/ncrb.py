@@ -92,7 +92,19 @@ def build(rows: list[dict], cities: dict[str, dict]) -> dict:
             continue
         totals = [sum(d["totals"][i] or 0 for d in members) if any(d["totals"][i] is not None for d in members) else None for i in range(len(years))]
         out_cities[cid] = {"districts": [d["key"] for d in members], "totals": totals}
-    return {"v": 1, "source": SOURCE, "years": years, "categories": list(CATEGORIES), "districts": districts, "cities": out_cities,
+    # state totals (sum of its territorial districts) with a per-year rank among states — context for state-wide coverage
+    states: dict[str, dict] = {}
+    for d in districts:
+        st = states.setdefault(d["state"], {"totals": [None] * len(years), "districts": 0})
+        st["districts"] += 1
+        for i, v in enumerate(d["totals"]):
+            if v is not None:
+                st["totals"][i] = (st["totals"][i] or 0) + v
+    for i, y in enumerate(years):
+        have = sorted((s for s in states.values() if s["totals"][i] is not None), key=lambda s: -s["totals"][i])
+        for rank, s in enumerate(have, 1):
+            s.setdefault("rank", {})[str(y)] = [rank, len(have)]
+    return {"v": 1, "source": SOURCE, "years": years, "categories": list(CATEGORIES), "districts": districts, "cities": out_cities, "states": states,
             "notes": "Registered cases in selected categories; counts, not rates; district level; not used in the street-level score."}
 
 

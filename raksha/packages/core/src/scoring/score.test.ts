@@ -88,3 +88,23 @@ describe("scoreCity", () => {
     }
   });
 });
+
+describe("fixed (national) calibration", () => {
+  const cells = ["89608b444c3ffff", "89608b444c7ffff", "89608b444cbffff"].map((h3, i) => ({ ...base, h3, light: i / 2, act_night: i / 2, help: i / 2 }));
+  const fixed = { day: { a: 100, b: 0, p5: 0, p95: 1 }, evening: { a: 100, b: 0, p5: 0, p95: 1 }, night: { a: 100, b: 0, p5: 0, p95: 1 } };
+  it("uses the supplied calibration instead of the city's own, so tiles stay comparable", () => {
+    const own = scoreCity(cells);
+    const withFixed = scoreCity(cells, fixed);
+    expect(withFixed.calibration.night).toEqual(fixed.night);
+    expect(own.calibration.night.a).not.toBe(100);
+  });
+  it("scores a cell identically whatever else is in its tile (cells far apart don't smooth into each other)", () => {
+    const a = { ...base, h3: "89608b444c3ffff", light: 0.9, act_night: 0.8, help: 0.7 };
+    const farAway = { ...base, h3: "8960145b493ffff", light: 0.1, act_night: 0, help: 0 };       // a different part of the world
+    const solo = scoreCity([a], fixed).cells.get(a.h3)!.night.score;
+    const crowd = scoreCity([a, farAway], fixed).cells.get(a.h3)!.night.score;
+    expect(crowd).toBe(solo);                                                                    // with city-relative calibration this would shift
+    const relSolo = scoreCity([a]).cells.get(a.h3)!.night.score, relCrowd = scoreCity([a, farAway]).cells.get(a.h3)!.night.score;
+    expect(relCrowd).not.toBe(relSolo);                                                          // …and it does: that's why a fixed scale is needed
+  });
+});

@@ -9,7 +9,9 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "build-cells": "tsx src/scoring/build-cells.ts",
-    "test:cov": "vitest run --coverage"
+    "test:cov": "vitest run --coverage",
+    "calibrate": "tsx src/scoring/calibrate-cli.ts",
+    "score-features": "tsx src/scoring/score-features.ts"
   },
   "dependencies": {
     "h3-js": "^4.5.0"

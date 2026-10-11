@@ -1,0 +1,17 @@
+# State-wide coverage, built as small tiles (one per H3 res-5 cell, ~250 km²) and loaded on demand around the user and along routes.
+# bbox = [south, west, north, east] (generous: neighbouring-state edges are processed too, which only adds coverage).
+maharashtra:
+  name: "Maharashtra"
+  pbf: western-zone
+  ncrb_state: "Maharashtra"
+  bbox: [15.60, 72.60, 22.10, 80.95]
+madhya_pradesh:
+  name: "Madhya Pradesh"
+  pbf: central-zone
+  ncrb_state: "Madhya Pradesh"
+  bbox: [21.05, 74.00, 26.90, 82.85]
+west_bengal:
+  name: "West Bengal"
+  pbf: eastern-zone
+  ncrb_state: "West Bengal"
+  bbox: [21.50, 85.80, 27.25, 89.90]

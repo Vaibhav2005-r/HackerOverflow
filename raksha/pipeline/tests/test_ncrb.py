@@ -45,6 +45,14 @@ def test_ranks_are_per_year_and_one_is_the_most_cases():
     assert d["districts"][0]["latest"] or True
 
 
+def test_state_totals_sum_territorial_districts_and_rank_states():
+    d = ncrb.build(ROWS, CITIES)
+    mh = d["states"]["Maharashtra"]
+    assert mh["totals"] == [1100, 370 + 901 + 50 + 105 + 226 + 10] and mh["districts"] == 3
+    assert d["states"]["Delhi"]["totals"] == [None, 10]
+    assert mh["rank"]["2022"] == [1, 2] and d["states"]["Delhi"]["rank"]["2022"] == [2, 2]
+
+
 def test_output_carries_its_own_caveats():
     d = ncrb.build(ROWS, CITIES)
     assert "counts, not rates" in d["notes"] and d["source"]["url"].startswith("https://")

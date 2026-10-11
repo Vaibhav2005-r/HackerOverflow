@@ -4,6 +4,7 @@ export interface NcrbDistrict { key: string; state: string; district: string; to
 export interface NcrbData {
   years: number[]; districts: NcrbDistrict[];
   cities: Record<string, { districts: string[]; totals: (number | null)[] }>;
+  states: Record<string, { totals: (number | null)[]; districts: number; rank?: Record<string, [number, number]> }>;
   source: { name: string; url: string }; notes: string;
 }
 

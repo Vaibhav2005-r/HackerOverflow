@@ -76,8 +76,8 @@ export interface CityScores {
   cells: Map<string, Record<Band, ScoredCell>>;
 }
 
-/** Scores every cell for every band: raw → calibrate → smooth → confidence penalty. */
-export function scoreCity(features: CellFeatures[]): CityScores {
+/** Scores every cell for every band: raw → calibrate → smooth → confidence penalty. `fixed` overrides the per-city calibration. */
+export function scoreCity(features: CellFeatures[], fixed?: Record<Band, Calibration>): CityScores {
   const byId = new Map(features.map((f) => [f.h3, f]));
   const calibration = {} as Record<Band, Calibration>;
   const cells = new Map<string, Record<Band, ScoredCell>>();
@@ -85,7 +85,8 @@ export function scoreCity(features: CellFeatures[]): CityScores {
 
   for (const band of BANDS) {
     const raws = features.map((f) => rawScore(f, band));
-    const cal = (calibration[band] = calibrate(raws));
+    // a fixed (national) calibration keeps every tile/city on the same scale; without one the city is calibrated against itself
+    const cal = (calibration[band] = fixed?.[band] ?? calibrate(raws));
     const cs = new Map(features.map((f, i) => [f.h3, clamp(cal.a * raws[i]! + cal.b, 0, 100)]));
     for (const f of features) {
       const nbs = getH3().gridDisk(f.h3, 1).filter((n) => n !== f.h3 && byId.has(n));
