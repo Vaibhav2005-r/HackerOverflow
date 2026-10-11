@@ -60,6 +60,7 @@ export default function Settings() {
 
       <Row label={t("set.openContact")}><button className="btn" data-testid="open-contact-view" onClick={() => void openContact()}>{t("common.open")}</button></Row>
 
+      <Row label={t("insights.title")}><button className="btn" data-testid="open-insights-settings" onClick={() => navigate("/insights")}>{t("common.open")}</button></Row>
       <AccountCard />
 
       <h2 className="mb-1 mt-8 text-sm font-semibold uppercase tracking-wide text-text-2">{t("set.testMode")}</h2>

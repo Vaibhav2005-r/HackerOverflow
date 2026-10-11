@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { m as motion } from "motion/react";
-import { Eye, Footprints, Layers, Locate, Phone, Settings as Cog, ShieldCheck } from "lucide-react";
+import { BarChart3, Eye, Footprints, Layers, Locate, Phone, Settings as Cog, ShieldCheck } from "lucide-react";
 import { type Band } from "@raksha/core";
 import { CompanionBar } from "../components/CompanionBar";
 import { HoldToSosButton } from "../components/HoldToSosButton";
 import { IconButton, QuickAction, SearchPill, TimeBandChip } from "../components/ui";
 import { ReasonsSheet } from "../components/ReasonsSheet";
 import { SafeSpotsSheet } from "../components/SafeSpotsSheet";
+import { DistrictSheet } from "../components/DistrictSheet";
 import { useCity } from "../store/city";
 import { nextNonce, useMapUi } from "../store/mapUi";
 import { useSettings } from "../store/settings";
@@ -32,12 +33,14 @@ export default function Home() {
   useNow(20_000);
   const [hex, setHex] = useState<string | null>(null);
   const [spots, setSpots] = useState(false);
+  const [district, setDistrict] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
 
   useEffect(() => { const on = () => setOnline(true), off = () => setOnline(false); window.addEventListener("online", on); window.addEventListener("offline", off); return () => { window.removeEventListener("online", on); window.removeEventListener("offline", off); }; }, []);
   useEffect(() => { if (hexTap) setHex(hexTap.h3); }, [hexTap]);
   useEffect(() => { if (!hasLine) greet(); }, [hasLine]);
 
+  const here = user ? coverageAt(user.lat, user.lng) : undefined;
   const covered = !user || index.length === 0 || !!coverageAt(user.lat, user.lng);
   const time = fmtClock(clock.now());
   // in Test mode the chip cycles the pretend time of day; otherwise it is just the clock
@@ -66,6 +69,7 @@ export default function Home() {
         <button className="glass flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold" aria-pressed={showHex} data-testid="toggle-hex" style={{ color: showHex ? "var(--brand-soft)" : "var(--text-2)" }} onClick={() => set({ showHex: !showHex })}>
           <Layers size={16} strokeWidth={1.75} />{t("home.layer")}
         </button>
+        <button className="glass flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold" data-testid="open-district" style={{ color: "var(--brand-soft)" }} onClick={() => setDistrict(true)}><BarChart3 size={16} strokeWidth={1.75} />{t("home.district")}</button>
         <IconButton label={t("home.locate")} testid="locate" onClick={() => user && useMapUi.getState().set({ flyTo: { lng: user.lng, lat: user.lat, zoom: 16, nonce: nextNonce() } })}><Locate size={20} strokeWidth={1.75} /></IconButton>
       </div>
 
@@ -85,6 +89,7 @@ export default function Home() {
 
       <ReasonsSheet h3={hex} band={band} onClose={() => setHex(null)} />
       <SafeSpotsSheet open={spots} onOpenChange={setSpots} />
+      <DistrictSheet open={district} onOpenChange={setDistrict} cityId={here?.id} cityName={here?.name} />
     </div>
   );
 }

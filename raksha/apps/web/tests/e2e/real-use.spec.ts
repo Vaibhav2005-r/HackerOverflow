@@ -66,3 +66,29 @@ test("Hindi: the language switch changes the UI and Sakhi's lines, and the page 
   const font = await page.evaluate(() => getComputedStyle(document.body).fontFamily);
   expect(font).toContain("Mukta");
 });
+
+test.describe("NCRB district context", () => {
+  test("shows real registered-case totals with caveats for the user's city, and compares cities on Insights", async ({ page }) => {
+    await onboard(page, { testMode: false });
+    await page.getByTestId("open-district").click();
+    await expect(page.getByTestId("district-sheet")).toBeVisible();
+    await expect(page.getByTestId("ncrb-total")).toHaveText(/\d/, { timeout: 15_000 });
+    const total = Number((await page.getByTestId("ncrb-total").textContent())!.replace(/[^\d]/g, ""));
+    expect(total).toBeGreaterThan(1000);                                   // Mumbai's registered cases in the selected categories
+    await expect(page.getByTestId("ncrb-trend")).toContainText("%");
+    await expect(page.getByTestId("ncrb-caveat")).toContainText("not a measure of how safe a street is");
+    await expect(page.getByTestId("ncrb-caveat")).toContainText("not used in the street-level safety score");
+    await page.getByTestId("open-insights").click();
+    await expect(page.getByTestId("insights")).toBeVisible();
+    await expect(page.getByTestId("insight-row")).toHaveCount(8);
+    await expect(page.getByTestId("insights")).toContainText("Counts, not rates");
+  });
+
+  test("outside any covered city there is no NCRB number — it never invents one", async ({ page }) => {
+    await page.context().setGeolocation({ latitude: 26.9124, longitude: 75.7873 }); // Jaipur: no pack
+    await onboard(page, { testMode: false });
+    await page.getByTestId("open-district").click();
+    await expect(page.getByTestId("ncrb-none")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("ncrb-total")).toHaveCount(0);
+  });
+});

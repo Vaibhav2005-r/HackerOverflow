@@ -2,41 +2,49 @@
 # falls back to public Overpass in ≤0.1° tiles cached in data/raw/<city>/ (slow and throttled — fine for a small area).
 # Order = priority. Add a city here, run `pnpm pipeline:run -- --city <id>`, and it appears in public/data/index.json.
 mumbai:
+  ncrb: { state: "Maharashtra", districts: ["Mumbai", "Mumbai Suburban"] }
   pbf: western-zone
   name: "Mumbai"
   bbox: [18.89, 72.76, 19.28, 72.99]
   h3_res: 9
 delhi:
+  ncrb: { state: "Delhi", districts: "all" }
   pbf: northern-zone
   name: "Delhi NCR (core)"
   bbox: [28.44, 77.03, 28.74, 77.36]
   h3_res: 9
 bengaluru:
+  ncrb: { state: "Karnataka", districts: ["Bengaluru Urban"] }
   pbf: southern-zone
   name: "Bengaluru"
   bbox: [12.84, 77.46, 13.12, 77.76]
   h3_res: 9
 pune:
+  ncrb: { state: "Maharashtra", districts: ["Pune"] }
   pbf: western-zone
   name: "Pune"
   bbox: [18.40, 73.74, 18.64, 74.00]
   h3_res: 9
 kolkata:
+  ncrb: { state: "West Bengal", districts: ["Kolkata"] }
   pbf: eastern-zone
   name: "Kolkata"
   bbox: [22.44, 88.24, 22.68, 88.46]
   h3_res: 9
 hyderabad:
+  ncrb: { state: "Telangana", districts: ["Hyderabad"] }
   pbf: southern-zone
   name: "Hyderabad"
   bbox: [17.28, 78.32, 17.54, 78.60]
   h3_res: 9
 chennai:
+  ncrb: { state: "Tamil Nadu", districts: ["Chennai"] }
   pbf: southern-zone
   name: "Chennai"
   bbox: [12.88, 80.12, 13.18, 80.34]
   h3_res: 9
 durgapur:
+  ncrb: { state: "West Bengal", districts: ["Paschim Bardhaman"] }
   pbf: eastern-zone
   name: "Durgapur"
   bbox: [23.48, 87.24, 23.58, 87.36]

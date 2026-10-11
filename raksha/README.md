@@ -72,11 +72,11 @@ pnpm functions:test && pnpm functions:check   # Deno: edge-function checks
 - **Estimates, not facts.** OSM lighting and opening-hours tags are sparse in India; many scores rest on priors, which is why confidence is shown and low-confidence cells are scored conservatively. Open data cannot see crowds, CCTV or tonight's power cut.
 - OSM walking alternatives are often near-identical, so the main value is the weak-stretch warnings and Guard rather than a dramatic safest-vs-fastest gap.
 - The Supabase backend is verified against plain PostgreSQL + PostGIS with pgTAP and a mutation check, and the edge functions are type-checked, but it has **not yet been run against a full Supabase stack** (no Docker on the dev machine). Report distance checks trust the position the client sends (best-effort anti-spam).
-- NCRB district context and the Insights heatmap are not part of this build; web-push fan-out is implemented server-side but untested end to end; more Indian languages and more cities are straightforward additions.
+- **NCRB** shows district-level context only (Home → "District data", and an Insights comparison of the covered cities). It is *registered cases* in selected categories, as counts not rates (the source file has no population), and it is deliberately **not** part of the street-level safety score: a district count says nothing about a particular street, and more cases can mean easier reporting. There is no district choropleth map. Web-push fan-out is implemented server-side but untested end to end.
 - Evidence recording stops if the tab is closed.
 
 ## Data & attributions
-Map data © **OpenStreetMap contributors** (ODbL). Routing by **FOSSGIS / OSRM**. Base tiles by **OpenFreeMap**. Place search by **Photon (Komoot)**. Icons: Lucide. Font: Plus Jakarta Sans. Safety scores are derived from OSM; they are estimates and conditions can change.
+District context: **NCRB, Crime in India** (via the India Data Portal). Map data © **OpenStreetMap contributors** (ODbL). Routing by **FOSSGIS / OSRM**. Base tiles by **OpenFreeMap**. Place search by **Photon (Komoot)**. Icons: Lucide. Font: Plus Jakarta Sans. Safety scores are derived from OSM; they are estimates and conditions can change.
 
 ## Team
 _Fill in team name and members before submitting._

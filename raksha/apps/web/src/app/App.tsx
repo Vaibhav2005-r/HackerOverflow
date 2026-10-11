@@ -18,6 +18,7 @@ import FakeCall from "../screens/FakeCall";
 import Circle from "../screens/Circle";
 import Settings from "../screens/Settings";
 import Legal from "../screens/Legal";
+import Insights from "../screens/Insights";
 import DevComponents from "../screens/DevComponents";
 import { useSettings } from "../store/settings";
 import { useSession } from "../store/session";
@@ -31,7 +32,7 @@ import { useBand } from "../lib/useBand";
 if (import.meta.env.DEV) Object.assign(window, { __raksha: { mapUi: useMapUi, city: useCity, journey: useJourney, settings: useSettings } });
 
 const MAP_SCREENS = ["/", "/plan", "/journey", "/guard", "/search"];
-const OVERLAYS = ["/plan", "/journey", "/guard", "/sos", "/fake-call", "/circle", "/settings", "/search", "/privacy", "/terms"];
+const OVERLAYS = ["/plan", "/journey", "/guard", "/sos", "/fake-call", "/circle", "/settings", "/search", "/privacy", "/terms", "/insights"];
 
 const loadMotion = () => import("./motionFeatures").then((m) => m.default);
 
@@ -83,6 +84,7 @@ export default function App() {
       {path === "/fake-call" && <FakeCall />}
       {path === "/circle" && <Circle />}
       {path === "/settings" && <Settings />}
+      {path === "/insights" && <Insights />}
       {path === "/privacy" && <Legal kind="privacy" />}
       {path === "/terms" && <Legal kind="terms" />}
       <CardHost />
