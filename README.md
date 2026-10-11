@@ -85,7 +85,7 @@ supabase        optional backend: migrations, RLS, RPCs, edge functions, pgTAP t
 docs            SCORING.md, DEPLOY.md, DECISIONS.md, screenshots
 ```
 - **Local mode:** no keys → IndexedDB backend; the contact view works across tabs of the same browser.
-- **Supabase mode:** set `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (see `.env.example`) for cross-device live sharing, evidence upload and shared reports. Setup: [`supabase/README.md`](supabase/README.md).
+- **Supabase mode:** set `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (see `.env.example`) for cross-device live sharing, evidence upload and shared reports. Setup: [`supabase/README.md`](raksha/supabase/README.md).
 - **City data:** `pnpm pipeline:run --city all` builds the packs from Geofabrik extracts with osmium (see `raksha/docs/DEPLOY.md`); a monthly GitHub workflow refreshes them.
 
 ## Future prospects
