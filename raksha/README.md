@@ -32,7 +32,7 @@ Real use needs your real location and the real clock. To exercise the night-time
 3. **Guard** — inside an Extra-care area the UI becomes one-handed: hold-to-SOS (2 s), siren, share live location, fake call, nearest safe spot; left/right-hand layout.
 4. **SOS** — silent by default (loud adds a siren), a live link for her circle, audio evidence, one-tap 112. Cancelling needs a PIN; a **duress PIN** shows the same "cancelled" screen but keeps the SOS active and tells the circle "possible coercion". Shake-to-SOS has a 3 s cancellable countdown. A walk-with-me timer and "are you okay?" check-ins escalate if she doesn't answer.
 5. **Built for bad networks** — SOS positions and the cancel/resolve call queue and retry until the backend accepts them (a duress flag survives a reload); if the SOS session can't be created at first, the screen still works (112 / SMS links) while it retries.
-6. **Real coverage** — safety packs are built from OpenStreetMap for the cities in `public/data/index.json` and loaded for wherever she actually is. Outside a pack, routes still work and are scored cautiously ("limited data"), never shown as comfortable.
+6. **Real coverage** — safety packs are built from OpenStreetMap for Mumbai, Delhi NCR, Bengaluru, Pune, Kolkata, Hyderabad, Chennai and Durgapur (`public/data/index.json`) and loaded for wherever she actually is. Outside a pack, routes still work and are scored cautiously ("limited data"), never shown as comfortable.
 7. **Accounts & languages** — anonymous by default, with an optional email upgrade so her circle follows her to a new phone; English and Hindi.
 
 ## How the safety score works

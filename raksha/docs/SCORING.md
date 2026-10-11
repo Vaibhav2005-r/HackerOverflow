@@ -43,8 +43,11 @@ Packs currently built from Geofabrik extracts (class share of cells at **night**
 
 | City | Cells | Night: Comfortable | Stay alert | Extra care |
 |---|---|---|---|---|
+| Bengaluru | 9,099 | 26.9% | 46.1% | 27% |
+| Chennai | 4,881 | 35.4% | 45.1% | 19.5% |
 | Delhi NCR (core) | 8,748 | 33.6% | 42.7% | 23.7% |
 | Durgapur | 953 | 22.7% | 54.9% | 22.5% |
+| Hyderabad | 7,598 | 28.8% | 49.9% | 21.3% |
 | Kolkata | 4,959 | 27.3% | 53.9% | 18.8% |
 | Mumbai | 5,271 | 35.1% | 27.5% | 37.4% |
 | Pune | 6,721 | 26.6% | 42.1% | 31.3% |

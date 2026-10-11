@@ -1,0 +1,52 @@
+{
+ "v": 1,
+ "city": "hyderabad",
+ "name": "Hyderabad",
+ "bbox": [
+  17.28,
+  78.32,
+  17.54,
+  78.6
+ ],
+ "res": 9,
+ "cellCount": 7598,
+ "generated_at": "2026-10-10T18:19:34+00:00",
+ "calibration": {
+  "day": {
+   "a": 102.66813961224298,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.730509
+  },
+  "evening": {
+   "a": 113.2082306912042,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.6624959999999999
+  },
+  "night": {
+   "a": 111.07622494860874,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.6752119999999999
+  }
+ },
+ "distributionPct": {
+  "day": {
+   "COMFORTABLE": 31.4,
+   "STAY_ALERT": 37.9,
+   "EXTRA_CARE": 30.7
+  },
+  "evening": {
+   "COMFORTABLE": 27,
+   "STAY_ALERT": 44.9,
+   "EXTRA_CARE": 28.1
+  },
+  "night": {
+   "COMFORTABLE": 28.8,
+   "STAY_ALERT": 49.9,
+   "EXTRA_CARE": 21.3
+  }
+ },
+ "attribution": "© OpenStreetMap contributors (ODbL). Scores are estimates from open map data; conditions can change."
+}

@@ -99,7 +99,7 @@ test("fake call rings, answers and times the call", async ({ page }) => {
 });
 
 test("a community report is stored locally and adjusts the hex score", async ({ page }) => {
-  const h3 = await page.evaluate(async () => { const idx = await (await fetch("/data/index.json")).json(); const j = await (await fetch(`/data/${idx.cities[0].id}/cells.json`)).json(); return j.cells[10][0] as string; });
+  const h3 = await page.evaluate(async () => { const j = await (await fetch("/data/mumbai/cells.json")).json(); return j.cells[10][0] as string; });
   const before = await page.evaluate((h) => (window as any).__raksha.city.getState().lookup, h3).then(() => page.evaluate((h) => { const c = (window as any).__raksha.city.getState(); return c.cells.get(h).scores[2] as number; }, h3));
   await page.evaluate((h) => (window as any).__raksha.mapUi.getState().set({ hexTap: { h3: h, nonce: 1 } }), h3);
   await expect(page.getByTestId("hex-reasons")).toBeVisible();

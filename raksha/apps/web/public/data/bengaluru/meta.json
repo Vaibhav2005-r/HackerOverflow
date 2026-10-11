@@ -1,0 +1,52 @@
+{
+ "v": 1,
+ "city": "bengaluru",
+ "name": "Bengaluru",
+ "bbox": [
+  12.84,
+  77.46,
+  13.12,
+  77.76
+ ],
+ "res": 9,
+ "cellCount": 9099,
+ "generated_at": "2026-10-10T18:19:13+00:00",
+ "calibration": {
+  "day": {
+   "a": 101.79443225173355,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.7367790000000001
+  },
+  "evening": {
+   "a": 113.82667839334401,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.6588965000000001
+  },
+  "night": {
+   "a": 114.26020705472988,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.6563965
+  }
+ },
+ "distributionPct": {
+  "day": {
+   "COMFORTABLE": 30.8,
+   "STAY_ALERT": 36.1,
+   "EXTRA_CARE": 33.1
+  },
+  "evening": {
+   "COMFORTABLE": 27.1,
+   "STAY_ALERT": 42.7,
+   "EXTRA_CARE": 30.2
+  },
+  "night": {
+   "COMFORTABLE": 26.9,
+   "STAY_ALERT": 46.1,
+   "EXTRA_CARE": 27
+  }
+ },
+ "attribution": "© OpenStreetMap contributors (ODbL). Scores are estimates from open map data; conditions can change."
+}

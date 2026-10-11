@@ -1,0 +1,52 @@
+{
+ "v": 1,
+ "city": "chennai",
+ "name": "Chennai",
+ "bbox": [
+  12.88,
+  80.12,
+  13.18,
+  80.34
+ ],
+ "res": 9,
+ "cellCount": 4881,
+ "generated_at": "2026-10-10T18:19:49+00:00",
+ "calibration": {
+  "day": {
+   "a": 101.4274219177897,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.7394449999999999
+  },
+  "evening": {
+   "a": 110.39070951788695,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.6794050000000001
+  },
+  "night": {
+   "a": 108.68383871318333,
+   "b": 15,
+   "p5": 0,
+   "p95": 0.6900750000000001
+  }
+ },
+ "distributionPct": {
+  "day": {
+   "COMFORTABLE": 35.9,
+   "STAY_ALERT": 38.5,
+   "EXTRA_CARE": 25.6
+  },
+  "evening": {
+   "COMFORTABLE": 32.9,
+   "STAY_ALERT": 44.5,
+   "EXTRA_CARE": 22.6
+  },
+  "night": {
+   "COMFORTABLE": 35.4,
+   "STAY_ALERT": 45.1,
+   "EXTRA_CARE": 19.5
+  }
+ },
+ "attribution": "© OpenStreetMap contributors (ODbL). Scores are estimates from open map data; conditions can change."
+}
