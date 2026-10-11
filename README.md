@@ -126,4 +126,7 @@ pnpm functions:test && pnpm functions:check   # Deno: edge-function checks
 District context: **NCRB, Crime in India** (via the India Data Portal). Map data © **OpenStreetMap contributors** (ODbL). Routing by **FOSSGIS / OSRM**. Base tiles by **OpenFreeMap**. Place search by **Photon (Komoot)**. Icons: Lucide. Font: Plus Jakarta Sans. Safety scores are derived from OSM; they are estimates and conditions can change.
 
 ## Team
-_Fill in team name and members before submitting._
+**Team Caffeinated Compilers**
+
+- Siddhi Lakhotia (team leader)
+- Vaibhav Dohare
